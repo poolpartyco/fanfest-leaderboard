@@ -396,8 +396,8 @@
       "hour": "12:00",
       "homeTeamId": "ger",
       "awayTeamId": "cur",
-      "homeScore": 0,
-      "awayScore": 0,
+      "homeScore": 7,
+      "awayScore": 1,
       "picks": {
         "u-josue": "ger",
         "u-andres": "ger",
