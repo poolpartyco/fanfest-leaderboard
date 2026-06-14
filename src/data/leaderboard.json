@@ -1,0 +1,1354 @@
+{
+  "users": [
+    {
+      "id": "u-josue",
+      "name": "Josue"
+    },
+    {
+      "id": "u-andres",
+      "name": "Andres"
+    },
+    {
+      "id": "u-baena",
+      "name": "Baena"
+    },
+    {
+      "id": "u-yorman",
+      "name": "Yorman"
+    }
+  ],
+  "teams": [
+    {
+      "id": "mex",
+      "name": "México",
+      "flag": "🇲🇽"
+    },
+    {
+      "id": "rsa",
+      "name": "Sudáfrica",
+      "flag": "🇿🇦"
+    },
+    {
+      "id": "kor",
+      "name": "Corea del Sur",
+      "flag": "🇰🇷"
+    },
+    {
+      "id": "cze",
+      "name": "Chequia",
+      "flag": "🇨🇿"
+    },
+    {
+      "id": "can",
+      "name": "Canadá",
+      "flag": "🇨🇦"
+    },
+    {
+      "id": "bih",
+      "name": "Bosnia y Herzegovina",
+      "flag": "🇧🇦"
+    },
+    {
+      "id": "usa",
+      "name": "Estados Unidos",
+      "flag": "🇺🇸"
+    },
+    {
+      "id": "par",
+      "name": "Paraguay",
+      "flag": "🇵🇾"
+    },
+    {
+      "id": "qat",
+      "name": "Catar",
+      "flag": "🇶🇦"
+    },
+    {
+      "id": "sui",
+      "name": "Suiza",
+      "flag": "🇨🇭"
+    },
+    {
+      "id": "bra",
+      "name": "Brasil",
+      "flag": "🇧🇷"
+    },
+    {
+      "id": "mar",
+      "name": "Marruecos",
+      "flag": "🇲🇦"
+    },
+    {
+      "id": "hai",
+      "name": "Haití",
+      "flag": "🇭🇹"
+    },
+    {
+      "id": "sco",
+      "name": "Escocia",
+      "flag": "🏴"
+    },
+    {
+      "id": "aus",
+      "name": "Australia",
+      "flag": "🇦🇺"
+    },
+    {
+      "id": "tur",
+      "name": "Turquía",
+      "flag": "🇹🇷"
+    },
+    {
+      "id": "draw",
+      "name": "Empate",
+      "flag": "🤝"
+    },
+    {
+      "id": "none",
+      "name": "Sin pick",
+      "flag": "∅"
+    },
+    {
+      "id": "ger",
+      "name": "Germany",
+      "flag": "🇩🇪"
+    },
+    {
+      "id": "cur",
+      "name": "Curaçao",
+      "flag": "🇨🇼"
+    },
+    {
+      "id": "ned",
+      "name": "Netherlands",
+      "flag": "🇳🇱"
+    },
+    {
+      "id": "jpn",
+      "name": "Japan",
+      "flag": "🇯🇵"
+    },
+    {
+      "id": "civ",
+      "name": "Côte d'Ivoire",
+      "flag": "🇨🇮"
+    },
+    {
+      "id": "ecu",
+      "name": "Ecuador",
+      "flag": "🇪🇨"
+    },
+    {
+      "id": "swe",
+      "name": "Sweden",
+      "flag": "🇸🇪"
+    },
+    {
+      "id": "tun",
+      "name": "Tunisia",
+      "flag": "🇹🇳"
+    },
+    {
+      "id": "esp",
+      "name": "Spain",
+      "flag": "🇪🇸"
+    },
+    {
+      "id": "cpv",
+      "name": "Cabo Verde",
+      "flag": "🇨🇻"
+    },
+    {
+      "id": "bel",
+      "name": "Belgium",
+      "flag": "🇧🇪"
+    },
+    {
+      "id": "egy",
+      "name": "Egypt",
+      "flag": "🇪🇬"
+    },
+    {
+      "id": "ksa",
+      "name": "Saudi Arabia",
+      "flag": "🇸🇦"
+    },
+    {
+      "id": "uru",
+      "name": "Uruguay",
+      "flag": "🇺🇾"
+    },
+    {
+      "id": "irn",
+      "name": "IR Iran",
+      "flag": "🇮🇷"
+    },
+    {
+      "id": "nzl",
+      "name": "New Zealand",
+      "flag": "🇳🇿"
+    },
+    {
+      "id": "fra",
+      "name": "France",
+      "flag": "🇫🇷"
+    },
+    {
+      "id": "sen",
+      "name": "Senegal",
+      "flag": "🇸🇳"
+    },
+    {
+      "id": "irq",
+      "name": "Iraq",
+      "flag": "🇮🇶"
+    },
+    {
+      "id": "nor",
+      "name": "Norway",
+      "flag": "🇳🇴"
+    },
+    {
+      "id": "arg",
+      "name": "Argentina",
+      "flag": "🇦🇷"
+    },
+    {
+      "id": "alg",
+      "name": "Algeria",
+      "flag": "🇩🇿"
+    },
+    {
+      "id": "aut",
+      "name": "Austria",
+      "flag": "🇦🇹"
+    },
+    {
+      "id": "jor",
+      "name": "Jordan",
+      "flag": "🇯🇴"
+    },
+    {
+      "id": "por",
+      "name": "Portugal",
+      "flag": "🇵🇹"
+    },
+    {
+      "id": "cod",
+      "name": "Congo DR",
+      "flag": "🇨🇩"
+    },
+    {
+      "id": "col",
+      "name": "Colombia",
+      "flag": "🇨🇴"
+    },
+    {
+      "id": "eng",
+      "name": "England",
+      "flag": "🏴"
+    },
+    {
+      "id": "cro",
+      "name": "Croatia",
+      "flag": "🇭🇷"
+    },
+    {
+      "id": "gha",
+      "name": "Ghana",
+      "flag": "🇬🇭"
+    },
+    {
+      "id": "pan",
+      "name": "Panama",
+      "flag": "🇵🇦"
+    },
+    {
+      "id": "uzb",
+      "name": "Uzbekistan",
+      "flag": "🇺🇿"
+    }
+  ],
+  "matches": [
+    {
+      "id": "match-1",
+      "date": "11/6",
+      "hour": "14:00",
+      "homeTeamId": "mex",
+      "awayTeamId": "rsa",
+      "homeScore": 2,
+      "awayScore": 0,
+      "picks": {
+        "u-josue": "mex",
+        "u-andres": "mex",
+        "u-baena": "mex",
+        "u-yorman": "mex"
+      }
+    },
+    {
+      "id": "match-2",
+      "date": "11/6",
+      "hour": "21:00",
+      "homeTeamId": "kor",
+      "awayTeamId": "cze",
+      "homeScore": 2,
+      "awayScore": 1,
+      "picks": {
+        "u-josue": "kor",
+        "u-andres": "kor",
+        "u-baena": "kor",
+        "u-yorman": "kor"
+      }
+    },
+    {
+      "id": "match-3",
+      "date": "12/6",
+      "hour": "14:00",
+      "homeTeamId": "can",
+      "awayTeamId": "bih",
+      "homeScore": 1,
+      "awayScore": 1,
+      "picks": {
+        "u-josue": "draw",
+        "u-andres": "none",
+        "u-baena": "bih",
+        "u-yorman": "draw"
+      }
+    },
+    {
+      "id": "match-4",
+      "date": "12/6",
+      "hour": "20:00",
+      "homeTeamId": "usa",
+      "awayTeamId": "par",
+      "homeScore": 4,
+      "awayScore": 1,
+      "picks": {
+        "u-josue": "par",
+        "u-andres": "par",
+        "u-baena": "par",
+        "u-yorman": "par"
+      }
+    },
+    {
+      "id": "match-5",
+      "date": "13/6",
+      "hour": "14:00",
+      "homeTeamId": "qat",
+      "awayTeamId": "sui",
+      "homeScore": 1,
+      "awayScore": 1,
+      "picks": {
+        "u-josue": "none",
+        "u-andres": "none",
+        "u-baena": "none",
+        "u-yorman": "none"
+      }
+    },
+    {
+      "id": "match-6",
+      "date": "13/6",
+      "hour": "17:00",
+      "homeTeamId": "bra",
+      "awayTeamId": "mar",
+      "homeScore": 1,
+      "awayScore": 1,
+      "picks": {
+        "u-josue": "bra",
+        "u-andres": "bra",
+        "u-baena": "bra",
+        "u-yorman": "bra"
+      }
+    },
+    {
+      "id": "match-7",
+      "date": "13/6",
+      "hour": "20:00",
+      "homeTeamId": "hai",
+      "awayTeamId": "sco",
+      "homeScore": 0,
+      "awayScore": 1,
+      "picks": {
+        "u-josue": "sco",
+        "u-andres": "hai",
+        "u-baena": "hai",
+        "u-yorman": "sco"
+      }
+    },
+    {
+      "id": "match-8",
+      "date": "13/6",
+      "hour": "23:00",
+      "homeTeamId": "aus",
+      "awayTeamId": "tur",
+      "homeScore": 2,
+      "awayScore": 0,
+      "picks": {
+        "u-josue": "tur",
+        "u-andres": "none",
+        "u-baena": "tur",
+        "u-yorman": "aus"
+      }
+    },
+    {
+      "id": "match-9",
+      "date": "14/6",
+      "hour": "12:00",
+      "homeTeamId": "ger",
+      "awayTeamId": "cur",
+      "homeScore": 0,
+      "awayScore": 0,
+      "picks": {
+        "u-josue": "none",
+        "u-andres": "none",
+        "u-baena": "none",
+        "u-yorman": "none"
+      }
+    },
+    {
+      "id": "match-10",
+      "date": "14/6",
+      "hour": "15:00",
+      "homeTeamId": "ned",
+      "awayTeamId": "jpn",
+      "homeScore": 0,
+      "awayScore": 0,
+      "picks": {
+        "u-josue": "none",
+        "u-andres": "none",
+        "u-baena": "none",
+        "u-yorman": "none"
+      }
+    },
+    {
+      "id": "match-11",
+      "date": "14/6",
+      "hour": "18:00",
+      "homeTeamId": "civ",
+      "awayTeamId": "ecu",
+      "homeScore": 0,
+      "awayScore": 0,
+      "picks": {
+        "u-josue": "none",
+        "u-andres": "none",
+        "u-baena": "none",
+        "u-yorman": "none"
+      }
+    },
+    {
+      "id": "match-12",
+      "date": "14/6",
+      "hour": "21:00",
+      "homeTeamId": "swe",
+      "awayTeamId": "tun",
+      "homeScore": 0,
+      "awayScore": 0,
+      "picks": {
+        "u-josue": "none",
+        "u-andres": "none",
+        "u-baena": "none",
+        "u-yorman": "none"
+      }
+    },
+    {
+      "id": "match-13",
+      "date": "15/6",
+      "hour": "11:00",
+      "homeTeamId": "esp",
+      "awayTeamId": "cpv",
+      "homeScore": 0,
+      "awayScore": 0,
+      "picks": {
+        "u-josue": "none",
+        "u-andres": "none",
+        "u-baena": "none",
+        "u-yorman": "none"
+      }
+    },
+    {
+      "id": "match-14",
+      "date": "15/6",
+      "hour": "14:00",
+      "homeTeamId": "bel",
+      "awayTeamId": "egy",
+      "homeScore": 0,
+      "awayScore": 0,
+      "picks": {
+        "u-josue": "none",
+        "u-andres": "none",
+        "u-baena": "none",
+        "u-yorman": "none"
+      }
+    },
+    {
+      "id": "match-15",
+      "date": "15/6",
+      "hour": "17:00",
+      "homeTeamId": "ksa",
+      "awayTeamId": "uru",
+      "homeScore": 0,
+      "awayScore": 0,
+      "picks": {
+        "u-josue": "none",
+        "u-andres": "none",
+        "u-baena": "none",
+        "u-yorman": "none"
+      }
+    },
+    {
+      "id": "match-16",
+      "date": "15/6",
+      "hour": "20:00",
+      "homeTeamId": "irn",
+      "awayTeamId": "nzl",
+      "homeScore": 0,
+      "awayScore": 0,
+      "picks": {
+        "u-josue": "none",
+        "u-andres": "none",
+        "u-baena": "none",
+        "u-yorman": "none"
+      }
+    },
+    {
+      "id": "match-17",
+      "date": "16/6",
+      "hour": "14:00",
+      "homeTeamId": "fra",
+      "awayTeamId": "sen",
+      "homeScore": 0,
+      "awayScore": 0,
+      "picks": {
+        "u-josue": "none",
+        "u-andres": "none",
+        "u-baena": "none",
+        "u-yorman": "none"
+      }
+    },
+    {
+      "id": "match-18",
+      "date": "16/6",
+      "hour": "17:00",
+      "homeTeamId": "irq",
+      "awayTeamId": "nor",
+      "homeScore": 0,
+      "awayScore": 0,
+      "picks": {
+        "u-josue": "none",
+        "u-andres": "none",
+        "u-baena": "none",
+        "u-yorman": "none"
+      }
+    },
+    {
+      "id": "match-19",
+      "date": "16/6",
+      "hour": "20:00",
+      "homeTeamId": "arg",
+      "awayTeamId": "alg",
+      "homeScore": 0,
+      "awayScore": 0,
+      "picks": {
+        "u-josue": "none",
+        "u-andres": "none",
+        "u-baena": "none",
+        "u-yorman": "none"
+      }
+    },
+    {
+      "id": "match-20",
+      "date": "16/6",
+      "hour": "23:00",
+      "homeTeamId": "aut",
+      "awayTeamId": "jor",
+      "homeScore": 0,
+      "awayScore": 0,
+      "picks": {
+        "u-josue": "none",
+        "u-andres": "none",
+        "u-baena": "none",
+        "u-yorman": "none"
+      }
+    },
+    {
+      "id": "match-21",
+      "date": "17/6",
+      "hour": "12:00",
+      "homeTeamId": "por",
+      "awayTeamId": "cod",
+      "homeScore": 0,
+      "awayScore": 0,
+      "picks": {
+        "u-josue": "none",
+        "u-andres": "none",
+        "u-baena": "none",
+        "u-yorman": "none"
+      }
+    },
+    {
+      "id": "match-22",
+      "date": "17/6",
+      "hour": "15:00",
+      "homeTeamId": "eng",
+      "awayTeamId": "cro",
+      "homeScore": 0,
+      "awayScore": 0,
+      "picks": {
+        "u-josue": "none",
+        "u-andres": "none",
+        "u-baena": "none",
+        "u-yorman": "none"
+      }
+    },
+    {
+      "id": "match-23",
+      "date": "17/6",
+      "hour": "18:00",
+      "homeTeamId": "gha",
+      "awayTeamId": "pan",
+      "homeScore": 0,
+      "awayScore": 0,
+      "picks": {
+        "u-josue": "none",
+        "u-andres": "none",
+        "u-baena": "none",
+        "u-yorman": "none"
+      }
+    },
+    {
+      "id": "match-24",
+      "date": "17/6",
+      "hour": "21:00",
+      "homeTeamId": "uzb",
+      "awayTeamId": "col",
+      "homeScore": 0,
+      "awayScore": 0,
+      "picks": {
+        "u-josue": "none",
+        "u-andres": "none",
+        "u-baena": "none",
+        "u-yorman": "none"
+      }
+    },
+    {
+      "id": "match-25",
+      "date": "18/6",
+      "hour": "11:00",
+      "homeTeamId": "cze",
+      "awayTeamId": "rsa",
+      "homeScore": 0,
+      "awayScore": 0,
+      "picks": {
+        "u-josue": "none",
+        "u-andres": "none",
+        "u-baena": "none",
+        "u-yorman": "none"
+      }
+    },
+    {
+      "id": "match-26",
+      "date": "18/6",
+      "hour": "14:00",
+      "homeTeamId": "sui",
+      "awayTeamId": "bih",
+      "homeScore": 0,
+      "awayScore": 0,
+      "picks": {
+        "u-josue": "none",
+        "u-andres": "none",
+        "u-baena": "none",
+        "u-yorman": "none"
+      }
+    },
+    {
+      "id": "match-27",
+      "date": "18/6",
+      "hour": "17:00",
+      "homeTeamId": "can",
+      "awayTeamId": "qat",
+      "homeScore": 0,
+      "awayScore": 0,
+      "picks": {
+        "u-josue": "none",
+        "u-andres": "none",
+        "u-baena": "none",
+        "u-yorman": "none"
+      }
+    },
+    {
+      "id": "match-28",
+      "date": "18/6",
+      "hour": "20:00",
+      "homeTeamId": "mex",
+      "awayTeamId": "kor",
+      "homeScore": 0,
+      "awayScore": 0,
+      "picks": {
+        "u-josue": "none",
+        "u-andres": "none",
+        "u-baena": "none",
+        "u-yorman": "none"
+      }
+    },
+    {
+      "id": "match-29",
+      "date": "19/6",
+      "hour": "14:00",
+      "homeTeamId": "usa",
+      "awayTeamId": "aus",
+      "homeScore": 0,
+      "awayScore": 0,
+      "picks": {
+        "u-josue": "none",
+        "u-andres": "none",
+        "u-baena": "none",
+        "u-yorman": "none"
+      }
+    },
+    {
+      "id": "match-30",
+      "date": "19/6",
+      "hour": "17:00",
+      "homeTeamId": "sco",
+      "awayTeamId": "mar",
+      "homeScore": 0,
+      "awayScore": 0,
+      "picks": {
+        "u-josue": "none",
+        "u-andres": "none",
+        "u-baena": "none",
+        "u-yorman": "none"
+      }
+    },
+    {
+      "id": "match-31",
+      "date": "19/6",
+      "hour": "19:30",
+      "homeTeamId": "bra",
+      "awayTeamId": "hai",
+      "homeScore": 0,
+      "awayScore": 0,
+      "picks": {
+        "u-josue": "none",
+        "u-andres": "none",
+        "u-baena": "none",
+        "u-yorman": "none"
+      }
+    },
+    {
+      "id": "match-32",
+      "date": "19/6",
+      "hour": "22:00",
+      "homeTeamId": "tur",
+      "awayTeamId": "par",
+      "homeScore": 0,
+      "awayScore": 0,
+      "picks": {
+        "u-josue": "none",
+        "u-andres": "none",
+        "u-baena": "none",
+        "u-yorman": "none"
+      }
+    },
+    {
+      "id": "match-33",
+      "date": "20/6",
+      "hour": "12:00",
+      "homeTeamId": "ned",
+      "awayTeamId": "swe",
+      "homeScore": 0,
+      "awayScore": 0,
+      "picks": {
+        "u-josue": "none",
+        "u-andres": "none",
+        "u-baena": "none",
+        "u-yorman": "none"
+      }
+    },
+    {
+      "id": "match-34",
+      "date": "20/6",
+      "hour": "15:00",
+      "homeTeamId": "ger",
+      "awayTeamId": "civ",
+      "homeScore": 0,
+      "awayScore": 0,
+      "picks": {
+        "u-josue": "none",
+        "u-andres": "none",
+        "u-baena": "none",
+        "u-yorman": "none"
+      }
+    },
+    {
+      "id": "match-35",
+      "date": "20/6",
+      "hour": "19:00",
+      "homeTeamId": "ecu",
+      "awayTeamId": "cur",
+      "homeScore": 0,
+      "awayScore": 0,
+      "picks": {
+        "u-josue": "none",
+        "u-andres": "none",
+        "u-baena": "none",
+        "u-yorman": "none"
+      }
+    },
+    {
+      "id": "match-36",
+      "date": "20/6",
+      "hour": "23:00",
+      "homeTeamId": "tun",
+      "awayTeamId": "jpn",
+      "homeScore": 0,
+      "awayScore": 0,
+      "picks": {
+        "u-josue": "none",
+        "u-andres": "none",
+        "u-baena": "none",
+        "u-yorman": "none"
+      }
+    },
+    {
+      "id": "match-37",
+      "date": "21/6",
+      "hour": "11:00",
+      "homeTeamId": "esp",
+      "awayTeamId": "ksa",
+      "homeScore": 0,
+      "awayScore": 0,
+      "picks": {
+        "u-josue": "none",
+        "u-andres": "none",
+        "u-baena": "none",
+        "u-yorman": "none"
+      }
+    },
+    {
+      "id": "match-38",
+      "date": "21/6",
+      "hour": "14:00",
+      "homeTeamId": "bel",
+      "awayTeamId": "irn",
+      "homeScore": 0,
+      "awayScore": 0,
+      "picks": {
+        "u-josue": "none",
+        "u-andres": "none",
+        "u-baena": "none",
+        "u-yorman": "none"
+      }
+    },
+    {
+      "id": "match-39",
+      "date": "21/6",
+      "hour": "17:00",
+      "homeTeamId": "uru",
+      "awayTeamId": "cpv",
+      "homeScore": 0,
+      "awayScore": 0,
+      "picks": {
+        "u-josue": "none",
+        "u-andres": "none",
+        "u-baena": "none",
+        "u-yorman": "none"
+      }
+    },
+    {
+      "id": "match-40",
+      "date": "21/6",
+      "hour": "20:00",
+      "homeTeamId": "nzl",
+      "awayTeamId": "egy",
+      "homeScore": 0,
+      "awayScore": 0,
+      "picks": {
+        "u-josue": "none",
+        "u-andres": "none",
+        "u-baena": "none",
+        "u-yorman": "none"
+      }
+    },
+    {
+      "id": "match-41",
+      "date": "22/6",
+      "hour": "12:00",
+      "homeTeamId": "arg",
+      "awayTeamId": "aut",
+      "homeScore": 0,
+      "awayScore": 0,
+      "picks": {
+        "u-josue": "none",
+        "u-andres": "none",
+        "u-baena": "none",
+        "u-yorman": "none"
+      }
+    },
+    {
+      "id": "match-42",
+      "date": "22/6",
+      "hour": "16:00",
+      "homeTeamId": "fra",
+      "awayTeamId": "irq",
+      "homeScore": 0,
+      "awayScore": 0,
+      "picks": {
+        "u-josue": "none",
+        "u-andres": "none",
+        "u-baena": "none",
+        "u-yorman": "none"
+      }
+    },
+    {
+      "id": "match-43",
+      "date": "22/6",
+      "hour": "19:00",
+      "homeTeamId": "nor",
+      "awayTeamId": "sen",
+      "homeScore": 0,
+      "awayScore": 0,
+      "picks": {
+        "u-josue": "none",
+        "u-andres": "none",
+        "u-baena": "none",
+        "u-yorman": "none"
+      }
+    },
+    {
+      "id": "match-44",
+      "date": "22/6",
+      "hour": "22:00",
+      "homeTeamId": "jor",
+      "awayTeamId": "alg",
+      "homeScore": 0,
+      "awayScore": 0,
+      "picks": {
+        "u-josue": "none",
+        "u-andres": "none",
+        "u-baena": "none",
+        "u-yorman": "none"
+      }
+    },
+    {
+      "id": "match-45",
+      "date": "23/6",
+      "hour": "12:00",
+      "homeTeamId": "por",
+      "awayTeamId": "uzb",
+      "homeScore": 0,
+      "awayScore": 0,
+      "picks": {
+        "u-josue": "none",
+        "u-andres": "none",
+        "u-baena": "none",
+        "u-yorman": "none"
+      }
+    },
+    {
+      "id": "match-46",
+      "date": "23/6",
+      "hour": "15:00",
+      "homeTeamId": "eng",
+      "awayTeamId": "gha",
+      "homeScore": 0,
+      "awayScore": 0,
+      "picks": {
+        "u-josue": "none",
+        "u-andres": "none",
+        "u-baena": "none",
+        "u-yorman": "none"
+      }
+    },
+    {
+      "id": "match-47",
+      "date": "23/6",
+      "hour": "18:00",
+      "homeTeamId": "pan",
+      "awayTeamId": "cro",
+      "homeScore": 0,
+      "awayScore": 0,
+      "picks": {
+        "u-josue": "none",
+        "u-andres": "none",
+        "u-baena": "none",
+        "u-yorman": "none"
+      }
+    },
+    {
+      "id": "match-48",
+      "date": "23/6",
+      "hour": "21:00",
+      "homeTeamId": "col",
+      "awayTeamId": "cod",
+      "homeScore": 0,
+      "awayScore": 0,
+      "picks": {
+        "u-josue": "none",
+        "u-andres": "none",
+        "u-baena": "none",
+        "u-yorman": "none"
+      }
+    },
+    {
+      "id": "match-49",
+      "date": "24/6",
+      "hour": "14:00",
+      "homeTeamId": "sui",
+      "awayTeamId": "can",
+      "homeScore": 0,
+      "awayScore": 0,
+      "picks": {
+        "u-josue": "none",
+        "u-andres": "none",
+        "u-baena": "none",
+        "u-yorman": "none"
+      }
+    },
+    {
+      "id": "match-50",
+      "date": "24/6",
+      "hour": "14:00",
+      "homeTeamId": "bih",
+      "awayTeamId": "qat",
+      "homeScore": 0,
+      "awayScore": 0,
+      "picks": {
+        "u-josue": "none",
+        "u-andres": "none",
+        "u-baena": "none",
+        "u-yorman": "none"
+      }
+    },
+    {
+      "id": "match-51",
+      "date": "24/6",
+      "hour": "17:00",
+      "homeTeamId": "sco",
+      "awayTeamId": "bra",
+      "homeScore": 0,
+      "awayScore": 0,
+      "picks": {
+        "u-josue": "none",
+        "u-andres": "none",
+        "u-baena": "none",
+        "u-yorman": "none"
+      }
+    },
+    {
+      "id": "match-52",
+      "date": "24/6",
+      "hour": "17:00",
+      "homeTeamId": "mar",
+      "awayTeamId": "hai",
+      "homeScore": 0,
+      "awayScore": 0,
+      "picks": {
+        "u-josue": "none",
+        "u-andres": "none",
+        "u-baena": "none",
+        "u-yorman": "none"
+      }
+    },
+    {
+      "id": "match-53",
+      "date": "24/6",
+      "hour": "20:00",
+      "homeTeamId": "cze",
+      "awayTeamId": "mex",
+      "homeScore": 0,
+      "awayScore": 0,
+      "picks": {
+        "u-josue": "none",
+        "u-andres": "none",
+        "u-baena": "none",
+        "u-yorman": "none"
+      }
+    },
+    {
+      "id": "match-54",
+      "date": "24/6",
+      "hour": "20:00",
+      "homeTeamId": "rsa",
+      "awayTeamId": "kor",
+      "homeScore": 0,
+      "awayScore": 0,
+      "picks": {
+        "u-josue": "none",
+        "u-andres": "none",
+        "u-baena": "none",
+        "u-yorman": "none"
+      }
+    },
+    {
+      "id": "match-55",
+      "date": "25/6",
+      "hour": "15:00",
+      "homeTeamId": "cur",
+      "awayTeamId": "civ",
+      "homeScore": 0,
+      "awayScore": 0,
+      "picks": {
+        "u-josue": "none",
+        "u-andres": "none",
+        "u-baena": "none",
+        "u-yorman": "none"
+      }
+    },
+    {
+      "id": "match-56",
+      "date": "25/6",
+      "hour": "15:00",
+      "homeTeamId": "ecu",
+      "awayTeamId": "ger",
+      "homeScore": 0,
+      "awayScore": 0,
+      "picks": {
+        "u-josue": "none",
+        "u-andres": "none",
+        "u-baena": "none",
+        "u-yorman": "none"
+      }
+    },
+    {
+      "id": "match-57",
+      "date": "25/6",
+      "hour": "18:00",
+      "homeTeamId": "jpn",
+      "awayTeamId": "swe",
+      "homeScore": 0,
+      "awayScore": 0,
+      "picks": {
+        "u-josue": "none",
+        "u-andres": "none",
+        "u-baena": "none",
+        "u-yorman": "none"
+      }
+    },
+    {
+      "id": "match-58",
+      "date": "25/6",
+      "hour": "18:00",
+      "homeTeamId": "tun",
+      "awayTeamId": "ned",
+      "homeScore": 0,
+      "awayScore": 0,
+      "picks": {
+        "u-josue": "none",
+        "u-andres": "none",
+        "u-baena": "none",
+        "u-yorman": "none"
+      }
+    },
+    {
+      "id": "match-59",
+      "date": "25/6",
+      "hour": "21:00",
+      "homeTeamId": "tur",
+      "awayTeamId": "usa",
+      "homeScore": 0,
+      "awayScore": 0,
+      "picks": {
+        "u-josue": "none",
+        "u-andres": "none",
+        "u-baena": "none",
+        "u-yorman": "none"
+      }
+    },
+    {
+      "id": "match-60",
+      "date": "25/6",
+      "hour": "21:00",
+      "homeTeamId": "par",
+      "awayTeamId": "aus",
+      "homeScore": 0,
+      "awayScore": 0,
+      "picks": {
+        "u-josue": "none",
+        "u-andres": "none",
+        "u-baena": "none",
+        "u-yorman": "none"
+      }
+    },
+    {
+      "id": "match-61",
+      "date": "26/6",
+      "hour": "14:00",
+      "homeTeamId": "nor",
+      "awayTeamId": "fra",
+      "homeScore": 0,
+      "awayScore": 0,
+      "picks": {
+        "u-josue": "none",
+        "u-andres": "none",
+        "u-baena": "none",
+        "u-yorman": "none"
+      }
+    },
+    {
+      "id": "match-62",
+      "date": "26/6",
+      "hour": "14:00",
+      "homeTeamId": "sen",
+      "awayTeamId": "irq",
+      "homeScore": 0,
+      "awayScore": 0,
+      "picks": {
+        "u-josue": "none",
+        "u-andres": "none",
+        "u-baena": "none",
+        "u-yorman": "none"
+      }
+    },
+    {
+      "id": "match-63",
+      "date": "26/6",
+      "hour": "19:00",
+      "homeTeamId": "cpv",
+      "awayTeamId": "ksa",
+      "homeScore": 0,
+      "awayScore": 0,
+      "picks": {
+        "u-josue": "none",
+        "u-andres": "none",
+        "u-baena": "none",
+        "u-yorman": "none"
+      }
+    },
+    {
+      "id": "match-64",
+      "date": "26/6",
+      "hour": "19:00",
+      "homeTeamId": "uru",
+      "awayTeamId": "esp",
+      "homeScore": 0,
+      "awayScore": 0,
+      "picks": {
+        "u-josue": "none",
+        "u-andres": "none",
+        "u-baena": "none",
+        "u-yorman": "none"
+      }
+    },
+    {
+      "id": "match-65",
+      "date": "26/6",
+      "hour": "22:00",
+      "homeTeamId": "egy",
+      "awayTeamId": "irn",
+      "homeScore": 0,
+      "awayScore": 0,
+      "picks": {
+        "u-josue": "none",
+        "u-andres": "none",
+        "u-baena": "none",
+        "u-yorman": "none"
+      }
+    },
+    {
+      "id": "match-66",
+      "date": "26/6",
+      "hour": "22:00",
+      "homeTeamId": "nzl",
+      "awayTeamId": "bel",
+      "homeScore": 0,
+      "awayScore": 0,
+      "picks": {
+        "u-josue": "none",
+        "u-andres": "none",
+        "u-baena": "none",
+        "u-yorman": "none"
+      }
+    },
+    {
+      "id": "match-67",
+      "date": "27/6",
+      "hour": "16:00",
+      "homeTeamId": "pan",
+      "awayTeamId": "eng",
+      "homeScore": 0,
+      "awayScore": 0,
+      "picks": {
+        "u-josue": "none",
+        "u-andres": "none",
+        "u-baena": "none",
+        "u-yorman": "none"
+      }
+    },
+    {
+      "id": "match-68",
+      "date": "27/6",
+      "hour": "16:00",
+      "homeTeamId": "cro",
+      "awayTeamId": "gha",
+      "homeScore": 0,
+      "awayScore": 0,
+      "picks": {
+        "u-josue": "none",
+        "u-andres": "none",
+        "u-baena": "none",
+        "u-yorman": "none"
+      }
+    },
+    {
+      "id": "match-69",
+      "date": "27/6",
+      "hour": "18:30",
+      "homeTeamId": "col",
+      "awayTeamId": "por",
+      "homeScore": 0,
+      "awayScore": 0,
+      "picks": {
+        "u-josue": "none",
+        "u-andres": "none",
+        "u-baena": "none",
+        "u-yorman": "none"
+      }
+    },
+    {
+      "id": "match-70",
+      "date": "27/6",
+      "hour": "18:30",
+      "homeTeamId": "cod",
+      "awayTeamId": "uzb",
+      "homeScore": 0,
+      "awayScore": 0,
+      "picks": {
+        "u-josue": "none",
+        "u-andres": "none",
+        "u-baena": "none",
+        "u-yorman": "none"
+      }
+    },
+    {
+      "id": "match-71",
+      "date": "27/6",
+      "hour": "21:00",
+      "homeTeamId": "alg",
+      "awayTeamId": "aut",
+      "homeScore": 0,
+      "awayScore": 0,
+      "picks": {
+        "u-josue": "none",
+        "u-andres": "none",
+        "u-baena": "none",
+        "u-yorman": "none"
+      }
+    },
+    {
+      "id": "match-72",
+      "date": "27/6",
+      "hour": "21:00",
+      "homeTeamId": "jor",
+      "awayTeamId": "arg",
+      "homeScore": 0,
+      "awayScore": 0,
+      "picks": {
+        "u-josue": "none",
+        "u-andres": "none",
+        "u-baena": "none",
+        "u-yorman": "none"
+      }
+    }
+  ]
+}
