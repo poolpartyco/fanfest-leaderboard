@@ -471,8 +471,8 @@
       "hour": "14:00",
       "homeTeamId": "bel",
       "awayTeamId": "egy",
-      "homeScore": 0,
-      "awayScore": 0,
+      "homeScore": 1,
+      "awayScore": 1,
       "picks": {
         "u-josue": "bel",
         "u-andres": "bel",
