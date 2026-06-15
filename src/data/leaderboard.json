@@ -459,10 +459,10 @@
       "homeScore": 0,
       "awayScore": 0,
       "picks": {
-        "u-josue": "none",
-        "u-andres": "none",
-        "u-baena": "none",
-        "u-yorman": "none"
+        "u-josue": "esp",
+        "u-andres": "esp",
+        "u-baena": "esp",
+        "u-yorman": "esp"
       }
     },
     {
@@ -474,10 +474,10 @@
       "homeScore": 0,
       "awayScore": 0,
       "picks": {
-        "u-josue": "none",
-        "u-andres": "none",
-        "u-baena": "none",
-        "u-yorman": "none"
+        "u-josue": "bel",
+        "u-andres": "bel",
+        "u-baena": "bel",
+        "u-yorman": "bel"
       }
     },
     {
@@ -489,10 +489,10 @@
       "homeScore": 0,
       "awayScore": 0,
       "picks": {
-        "u-josue": "none",
-        "u-andres": "none",
-        "u-baena": "none",
-        "u-yorman": "none"
+        "u-josue": "uru",
+        "u-andres": "uru",
+        "u-baena": "uru",
+        "u-yorman": "uru"
       }
     },
     {
@@ -504,10 +504,10 @@
       "homeScore": 0,
       "awayScore": 0,
       "picks": {
-        "u-josue": "none",
-        "u-andres": "none",
-        "u-baena": "none",
-        "u-yorman": "none"
+        "u-josue": "draw",
+        "u-andres": "irn",
+        "u-baena": "irn",
+        "u-yorman": "draw"
       }
     },
     {
