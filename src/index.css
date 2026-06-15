@@ -3,8 +3,10 @@
   --bg-soft: #0f1b30;
   --text: #e4eaf6;
   --text-muted: rgba(228, 234, 246, 0.72);
-  --display: 'Baskerville', 'Palatino Linotype', 'Times New Roman', serif;
-  --body: 'Avenir Next', 'Gill Sans', 'Trebuchet MS', sans-serif;
+  --display: 'Fraunces', 'Baskerville', 'Palatino Linotype', 'Times New Roman', serif;
+  --body: 'Schibsted Grotesk', 'Avenir Next', 'Gill Sans', 'Trebuchet MS', sans-serif;
+  --accent: #79d2ff;
+  --live: #ff5d73;
 
   font-family: var(--body);
   line-height: 1.5;
