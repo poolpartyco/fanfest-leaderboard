@@ -129,6 +129,11 @@
 .ff-rankrow-r { text-align: right; flex: 0 0 auto; }
 .ff-rankrow-pts { font-family: var(--display); font-weight: 800; font-size: 26px; color: var(--ink); }
 .ff-rankrow-ptsl { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--faint); }
+.ff-rankrow--tap { cursor: pointer; transition: background .15s, box-shadow .15s; }
+.ff-rankrow--tap:hover { background: var(--accentSoft); }
+.ff-rankrow--tap:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.ff-rankrow-go { color: var(--faint); font-size: 22px; line-height: 1; flex: 0 0 auto; transition: transform .15s, color .15s; }
+.ff-rankrow--tap:hover .ff-rankrow-go { color: var(--ink); transform: translateX(2px); }
 
 /* Matches */
 .ff-filters { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 18px; }

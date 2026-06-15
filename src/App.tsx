@@ -109,6 +109,13 @@ function App() {
   const avatarStyle = (name: string, i: number, neg: boolean): CSSProperties =>
     ({ background: playerColor(name, i), ...(neg ? { marginLeft: -7 } : {}) })
 
+  // Jump to the Matches tab filtered to a player's correct picks.
+  const showPlayerHits = (name: string) => {
+    setFilterPlayer(name)
+    setFilterResult('correct')
+    setTab('matches')
+  }
+
   // ----- Leaderboard -----
   const podiumOrder = [standings[1], standings[0], standings[2]].filter(Boolean)
   const renderPodium = () =>
@@ -133,7 +140,16 @@ function App() {
       const rc = rankRing(rank)
       const pct = r.totalMatches ? Math.round((r.correctPicks / r.totalMatches) * 100) : 0
       return (
-        <div key={r.user.id} className={`ff-rankrow${rank === 1 ? ' is-leader' : ''}`} style={{ animation: `fffade .5s ${i * 0.07}s both` }}>
+        <div
+          key={r.user.id}
+          className={`ff-rankrow ff-rankrow--tap${rank === 1 ? ' is-leader' : ''}`}
+          style={{ animation: `fffade .5s ${i * 0.07}s both` }}
+          role="button"
+          tabIndex={0}
+          title={`See ${r.user.name}'s correct picks`}
+          onClick={() => showPlayerHits(r.user.name)}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showPlayerHits(r.user.name) } }}
+        >
           <div className="ff-badge" style={{ background: rc.ring, color: rc.num, boxShadow: rc.glow }}>{rank}</div>
           <div className="ff-rankrow-main">
             <div className="ff-rankrow-name">{r.user.name}</div>
@@ -144,6 +160,7 @@ function App() {
             <div className="ff-rankrow-pts">{shown[r.user.id] ?? r.points}</div>
             <div className="ff-rankrow-ptsl">pts</div>
           </div>
+          <span className="ff-rankrow-go" aria-hidden="true">›</span>
         </div>
       )
     })
@@ -167,7 +184,11 @@ function App() {
     if (w === 'away') return teamLabel(m.away_team_id)
     return ''
   }
-  const filterNote = filterPlayer === 'Everyone' ? 'Pick a friend to filter by result' : `Showing ${filterPlayer}'s record`
+  const selectedPlayer = players.find((p) => p.name === filterPlayer)
+  const selectedCorrect = selectedPlayer ? past.filter((m) => presult(m, selectedPlayer) === 'correct').length : 0
+  const filterNote = filterPlayer === 'Everyone'
+    ? 'Pick a friend to see their correct picks'
+    : `${filterPlayer}: ${selectedCorrect} correct of ${past.length}`
 
   // ----- Vote / Upcoming -----
   const longDay = (iso: string) => {
