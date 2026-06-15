@@ -1,0 +1,45 @@
+name: Deploy to Railway
+
+# Build + deploy both services whenever code lands on main.
+# Railway's native GitHub push webhook does not fire for this org, so we drive
+# the deploy explicitly here via the Railway CLI (`railway up`).
+#
+# Requires a repo secret RAILWAY_TOKEN — a Railway *project* token scoped to the
+# fanfest-poolparty project, production environment
+# (Railway dashboard → project → Settings → Tokens). The deploy steps skip when
+# the secret is absent, so this workflow won't hard-fail before it's set.
+#
+# Note: database migrations are NOT run here — apply those manually via the
+# session pooler (see README / supabase/migrations).
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Railway CLI
+        run: npm i -g @railway/cli
+
+      - name: Deploy web
+        if: env.RAILWAY_TOKEN != ''
+        run: railway up --service web --ci
+
+      - name: Deploy poller
+        if: env.RAILWAY_TOKEN != ''
+        run: railway up --service poller --ci
+
+      - name: Note when unconfigured
+        if: env.RAILWAY_TOKEN == ''
+        run: echo "::warning::RAILWAY_TOKEN secret not set — skipping deploy. Add it in repo Settings → Secrets → Actions."
