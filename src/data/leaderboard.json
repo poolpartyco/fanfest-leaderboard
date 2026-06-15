@@ -441,8 +441,8 @@
       "hour": "21:00",
       "homeTeamId": "swe",
       "awayTeamId": "tun",
-      "homeScore": 0,
-      "awayScore": 0,
+      "homeScore": 5,
+      "awayScore": 1,
       "picks": {
         "u-josue": "swe",
         "u-andres": "swe",
