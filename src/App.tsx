@@ -7,6 +7,7 @@ import { winnerSide, pickSide, pickResult, sideToTeamId, type Side } from './lib
 import { THEMES, playerColor } from './lib/themes'
 import { submitPick } from './lib/picks'
 import { Flag } from './components/Flag'
+import { LiveStands } from './components/LiveStands'
 import type { MatchRow, TeamRow, UserRow } from './lib/types'
 
 type Tab = 'leaderboard' | 'vote' | 'matches' | 'upcoming'
@@ -221,47 +222,16 @@ function App() {
           </div>
         </div>
 
-        {/* Live banner */}
-        {liveMatch && (
-          <div className="ff-live">
-            <div className="ff-live-bar"><i /></div>
-            <div className="ff-live-head">
-              <div className="ff-live-badge">
-                <span className="ff-live-dot" />
-                <span className="ff-live-label">Live · {liveMinute}'</span>
-              </div>
-              <span className="ff-live-when">{formatKickoffBogota(liveMatch.kickoff).day} · {formatKickoffBogota(liveMatch.kickoff).time}</span>
-            </div>
-            <div className="ff-live-row">
-              <div className="ff-live-team home">
-                <span className="ff-live-name">{teamLabel(liveMatch.home_team_id)}</span>
-                <Flag teamId={liveMatch.home_team_id} emoji={teamEmoji(liveMatch.home_team_id)} size={38} />
-              </div>
-              <div className="ff-live-center">
-                <div className="ff-live-scorebox">
-                  <span className="ff-live-score">{liveMatch.home_score ?? 0}</span>
-                  <span className="ff-live-dash">–</span>
-                  <span className="ff-live-score">{liveMatch.away_score ?? 0}</span>
-                </div>
-                <span className="ff-live-min">{liveMinute}'</span>
-              </div>
-              <div className="ff-live-team">
-                <Flag teamId={liveMatch.away_team_id} emoji={teamEmoji(liveMatch.away_team_id)} size={38} />
-                <span className="ff-live-name">{teamLabel(liveMatch.away_team_id)}</span>
-              </div>
-            </div>
-            <div className="ff-live-foot">
-              <span className="ff-live-foot-label">Picks for <strong>{teamLabel(liveMatch.home_team_id)} vs {teamLabel(liveMatch.away_team_id)}</strong></span>
-              <div className="ff-chips">
-                {players.map((u, i) => {
-                  const s = pickSide(liveMatch, picksByMatch[liveMatch.id]?.[u.id])
-                  if (!s) return null
-                  const label = s === 'draw' ? 'Draw' : teamLabel(s === 'home' ? liveMatch.home_team_id : liveMatch.away_team_id)
-                  return <span key={u.id} className="ff-chip" title={`${u.name} · ${label}`}><span className="ff-chip-dot" style={dotStyle(u.name, i)} />{u.name}</span>
-                })}
-              </div>
-            </div>
-          </div>
+        {/* Live banner — Broadcast Stands */}
+        {liveMatch && liveMinute !== null && (
+          <LiveStands
+            match={liveMatch}
+            players={players}
+            picksByMatch={picksByMatch}
+            teamLabel={teamLabel}
+            teamEmoji={teamEmoji}
+            liveMinute={liveMinute}
+          />
         )}
 
         {/* Tabs */}

@@ -34,3 +34,6 @@ supabase/.temp
 
 # Extracted design handoff bundle (lives in Claude Design)
 .design-tmp/
+
+# Exploratory design mockups
+mockups/
