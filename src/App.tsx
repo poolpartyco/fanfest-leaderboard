@@ -6,6 +6,7 @@ import { partitionMatches, formatKickoffBogota, buildPicksByMatch } from './lib/
 import { winnerSide, pickSide, pickResult, sideToTeamId, type Side } from './lib/designView'
 import { THEMES, playerColor } from './lib/themes'
 import { submitPick } from './lib/picks'
+import { avatarFor } from './lib/avatars'
 import { Flag } from './components/Flag'
 import { LiveStands } from './components/LiveStands'
 import type { MatchRow, TeamRow, UserRow } from './lib/types'
@@ -196,6 +197,7 @@ function App() {
     return `${wd} ${formatKickoffBogota(iso).day}`
   }
   const votedCount = (m: MatchRow) => players.filter((u) => picksByMatch[m.id]?.[u.id] !== undefined).length
+  const sideMembers = (m: MatchRow, side: Side) => players.filter((u) => pickSide(m, picksByMatch[m.id]?.[u.id]) === side)
 
   const castVote = async (m: MatchRow, u: UserRow, side: Side) => {
     const { error } = await submitPick(m.id, u.id, sideToTeamId(m, side))
@@ -281,7 +283,7 @@ function App() {
         {/* Vote */}
         {tab === 'vote' && (
           <div>
-            <div className="ff-vote-intro">Cast each member's pick before kickoff — <strong>3 points</strong> for every correct call. Picks lock at kickoff.</div>
+            <div className="ff-vote-intro">Cast each member's pick before kickoff. <strong>3 points</strong> for every correct call, and picks lock at kickoff.</div>
             <div className="ff-vote-list">
               {upcoming.length === 0 && <div className="ff-poll">No upcoming matches to vote on.</div>}
               {upcoming.map((m) => {
@@ -299,33 +301,27 @@ function App() {
                       <span className="ff-vs">vs</span>
                       <div className="ff-poll-team away"><span className="ff-poll-tname">{teamLabel(m.away_team_id)}</span><Flag teamId={m.away_team_id} emoji={teamEmoji(m.away_team_id)} size={26} /></div>
                     </div>
-                    <div className="ff-poll-opts">
-                      {keys.map(([side, label]) => {
-                        const members = players.filter((u) => pickSide(m, picksByMatch[m.id]?.[u.id]) === side)
-                        const pct = total ? Math.round((members.length / total) * 100) : 0
-                        return (
-                          <div key={side} className="ff-opt">
-                            <div className="ff-opt-head">
-                              <span className="ff-opt-label" style={{ color: OPT_COLOR[side] }}>{label}</span>
-                              <span className="ff-opt-count">{members.length}</span>
-                            </div>
-                            <div className="ff-opt-track"><div className="ff-opt-fill" style={{ background: OPT_COLOR[side], width: `${pct}%` }} /></div>
-                            <div className="ff-opt-mem">
-                              {members.map((u, i) => (
-                                <span key={u.id} className="ff-av" style={avatarStyle(u.name, players.indexOf(u), i > 0)}>{u.name[0]}</span>
-                              ))}
-                            </div>
-                          </div>
-                        )
+                    <div className="ff-tally">
+                      {keys.map(([side]) => {
+                        const pct = total ? (sideMembers(m, side).length / total) * 100 : 0
+                        return <span key={side} style={{ width: `${pct}%`, background: OPT_COLOR[side] }} />
                       })}
+                    </div>
+                    <div className="ff-tlabels">
+                      {keys.map(([side, label]) => (
+                        <span key={side}><b>{sideMembers(m, side).length}</b> {label}</span>
+                      ))}
                     </div>
                     <div className="ff-poll-voters">
                       {players.map((u, pi) => {
                         const current = pickSide(m, picksByMatch[m.id]?.[u.id])
+                        const src = avatarFor(u.name)
                         return (
                           <div key={u.id} className="ff-voter">
                             <div className="ff-voter-id">
-                              <span className="ff-av" style={avatarStyle(u.name, pi, false)}>{u.name[0]}</span>
+                              {src
+                                ? <span className="ff-bc-ring" style={{ '--ring': playerColor(u.name, pi) } as CSSProperties}><img className="ff-bc-av" src={src} width={30} height={30} alt={u.name} /></span>
+                                : <span className="ff-av" style={avatarStyle(u.name, pi, false)}>{u.name[0]}</span>}
                               <span className="ff-voter-name">{u.name}</span>
                             </div>
                             <div className="ff-voter-opts">

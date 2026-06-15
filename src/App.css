@@ -167,6 +167,11 @@
 .ff-poll-team.away { justify-content: flex-end; }
 .ff-poll-tname { font-weight: 800; font-size: 17px; color: var(--ink); }
 .ff-vs { color: var(--faint); font-size: 13px; flex: 0 0 auto; }
+/* Vote tally bar (Member Rails direction) */
+.ff-tally { display: flex; height: 10px; border-radius: 99px; overflow: hidden; border: 1px solid var(--line); margin-bottom: 6px; background: var(--panel2); }
+.ff-tally span { display: block; transition: width .35s; }
+.ff-tlabels { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--muted); margin-bottom: 18px; flex-wrap: wrap; }
+.ff-tlabels b { color: var(--ink); }
 .ff-poll-opts { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 18px; }
 .ff-opt { background: var(--panel2); border: 1px solid var(--line); border-radius: 14px; padding: 13px 14px; }
 .ff-opt-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
