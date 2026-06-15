@@ -1,218 +1,461 @@
 import './App.css'
-import { useMemo } from 'react'
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { useLeaderboardData } from './lib/useLeaderboardData'
-import { buildLeaderboard, getMatchWinner, pointsPerCorrectPick } from './lib/scoring'
-import { partitionMatches, formatKickoffBogota, buildPicksByMatch, groupPicks } from './lib/view'
-import { PickEntry } from './components/PickEntry'
-import type { MatchRow, TeamRow } from './lib/types'
+import { buildLeaderboard } from './lib/scoring'
+import { partitionMatches, formatKickoffBogota, buildPicksByMatch } from './lib/view'
+import { winnerSide, pickSide, pickResult, sideToTeamId, type Side } from './lib/designView'
+import { DIRECTIONS, THEMES, playerColor, type DirectionKey } from './lib/themes'
+import { submitPick } from './lib/picks'
+import { Flag } from './components/Flag'
+import type { MatchRow, TeamRow, UserRow } from './lib/types'
+
+type Tab = 'leaderboard' | 'vote' | 'matches' | 'upcoming'
+
+const OPT_COLOR: Record<Side, string> = { home: 'var(--accent)', draw: '#9aa7ba', away: 'var(--gold)' }
+
+function rankRing(rank: number) {
+  if (rank === 1) return { ring: 'linear-gradient(135deg,#f8dd86,#c8932f)', num: '#3a2a06', glow: '0 0 24px rgba(245,196,81,.35)' }
+  if (rank === 2) return { ring: 'linear-gradient(135deg,#e3ebf4,#9aa7ba)', num: '#2a3140', glow: 'none' }
+  if (rank === 3) return { ring: 'linear-gradient(135deg,#ecb483,#b56f37)', num: '#3a2207', glow: 'none' }
+  return { ring: 'linear-gradient(135deg,var(--accent),#3a6fd0)', num: '#06101f', glow: 'none' }
+}
+
+function pickChipStyle(res: 'correct' | 'wrong' | 'none', dim: boolean): CSSProperties {
+  let background = 'transparent', borderColor = 'var(--line)', color = 'var(--muted)', dashed = false
+  if (res === 'correct') { background = 'rgba(94,224,160,.12)'; borderColor = 'rgba(94,224,160,.5)'; color = 'var(--good)' }
+  else if (res === 'wrong') { background = 'rgba(255,122,138,.1)'; borderColor = 'rgba(255,122,138,.45)'; color = 'var(--bad)' }
+  else { color = 'var(--faint)'; dashed = true }
+  return { background, border: `1px solid ${borderColor}`, borderStyle: dashed ? 'dashed' : 'solid', color, opacity: dim ? 0.35 : 1 }
+}
+
+const ROOT_BG =
+  'radial-gradient(150% 95% at 50% -18%, var(--glow), transparent 52%),' +
+  'repeating-linear-gradient(90deg, rgba(255,255,255,.013) 0 66px, rgba(0,0,0,0) 66px 132px),' +
+  'var(--bg0)'
 
 function App() {
   const { data, loading, error, refresh } = useLeaderboardData()
+  const hash = typeof window !== 'undefined' ? window.location.hash.slice(1).split('/') : []
+  const initialTab = (['leaderboard', 'vote', 'matches', 'upcoming'] as const).find((t) => t === hash[0]) ?? 'leaderboard'
+  const initialDir = (['editorial', 'broadcast', 'fiesta'] as const).find((d) => d === hash[1]) ?? 'editorial'
+  const [dir, setDir] = useState<DirectionKey>(initialDir)
+  const [tab, setTab] = useState<Tab>(initialTab)
+  const [sort, setSort] = useState<'recent' | 'oldest'>('recent')
+  const [filterPlayer, setFilterPlayer] = useState<string>('Everyone')
+  const [filterResult, setFilterResult] = useState<'all' | 'correct' | 'wrong'>('all')
+  const [shown, setShown] = useState<Record<string, number>>({})
+  const [, setNowTick] = useState(0)
+  const rafRef = useRef<number>(0)
 
-  const view = useMemo(() => {
+  // Tick for the live minute (every 30s, in step with data refresh).
+  useEffect(() => {
+    const id = setInterval(() => setNowTick((n) => n + 1), 30_000)
+    return () => clearInterval(id)
+  }, [])
+
+  const vm = useMemo(() => {
     if (!data) return null
     const teamLookup = new Map<string, TeamRow>(data.teams.map((t) => [t.id, t]))
     const teamLabel = (id: string) => (id === 'draw' ? 'Draw' : teamLookup.get(id)?.name ?? id)
-    const teamFlag = (id: string) => (id === 'draw' ? '🤝' : teamLookup.get(id)?.flag ?? '🏳️')
+    const teamEmoji = (id: string) => teamLookup.get(id)?.flag
+    const standings = buildLeaderboard(data.users, data.matches, data.picks)
     const { live, past, upcoming } = partitionMatches(data.matches)
     const picksByMatch = buildPicksByMatch(data.picks)
-    const leaderboard = buildLeaderboard(data.users, data.matches, data.picks)
-    return { teamLabel, teamFlag, live, past, upcoming, picksByMatch, leaderboard }
+    return { teamLabel, teamEmoji, standings, live, past, upcoming, picksByMatch, players: data.users }
   }, [data])
+
+  const ready = !!vm
+  // Count-up points on entering the leaderboard tab / first data load.
+  useEffect(() => {
+    if (!ready || tab !== 'leaderboard' || !vm) return
+    const standings = vm.standings
+    const start = performance.now()
+    const dur = 1000
+    const tick = (now: number) => {
+      const k = Math.min(1, (now - start) / dur)
+      const e = 1 - Math.pow(1 - k, 3)
+      const next: Record<string, number> = {}
+      standings.forEach((r) => { next[r.user.id] = Math.round(r.points * e) })
+      setShown(next)
+      if (k < 1) rafRef.current = requestAnimationFrame(tick)
+    }
+    rafRef.current = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(rafRef.current)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready, tab])
 
   if (loading) {
     return (
-      <main className="app-shell">
-        <div className="state-card">
-          <span className="state-spinner" aria-hidden="true" />
-          <p>Loading the leaderboard…</p>
-        </div>
-      </main>
+      <div className="ff-root" style={{ ...(THEMES[dir] as CSSProperties), background: ROOT_BG }}>
+        <div className="ff-state"><span className="ff-spinner" /><p>Loading the leaderboard…</p></div>
+      </div>
     )
   }
-
-  if (error || !data || !view) {
+  if (error || !vm) {
     return (
-      <main className="app-shell">
-        <div className="state-card state-card--error">
-          <p className="state-title">Couldn’t load data</p>
-          <p className="state-detail">{error ?? 'Unknown error'}</p>
-        </div>
-      </main>
+      <div className="ff-root" style={{ ...(THEMES[dir] as CSSProperties), background: ROOT_BG }}>
+        <div className="ff-state"><p className="ff-state-title">Couldn’t load data</p><p>{error ?? 'Unknown error'}</p></div>
+      </div>
     )
   }
 
-  const { teamLabel, teamFlag, live, past, upcoming, picksByMatch, leaderboard } = view
-  const leader = leaderboard[0]
-  const topScore = leader?.points ?? 0
-  const playedCount = past.length + live.length
+  const { teamLabel, teamEmoji, standings, live, past, upcoming, picksByMatch, players } = vm
+  const leader = standings[0]
+  const liveMatch = live[0]
+  const liveMinute = liveMatch
+    ? Math.min(90, Math.max(1, Math.floor((Date.now() - new Date(liveMatch.kickoff).getTime()) / 60_000)))
+    : null
 
-  const renderPickGroups = (match: MatchRow, withVerdict: boolean) => {
-    const winner = getMatchWinner(match)
-    return groupPicks(picksByMatch[match.id], data.users).map((group) => {
-      const isCorrect = withVerdict && winner !== null && group.teamId === winner
-      const isWrong = withVerdict && winner !== null && group.teamId !== winner
+  const dotStyle = (name: string, i: number): CSSProperties => ({ background: playerColor(name, i) })
+  const avatarStyle = (name: string, i: number, neg: boolean): CSSProperties =>
+    ({ background: playerColor(name, i), ...(neg ? { marginLeft: -7 } : {}) })
+
+  // ----- Leaderboard -----
+  const podiumOrder = [standings[1], standings[0], standings[2]].filter(Boolean)
+  const renderPodium = () =>
+    podiumOrder.map((s) => {
+      const rc = rankRing(s.user === leader.user ? 1 : standings.indexOf(s) + 1)
+      const rank = standings.indexOf(s) + 1
+      const av = rank === 1 ? 64 : 52
+      const barH = rank === 1 ? 108 : rank === 2 ? 78 : 60
       return (
-        <div key={group.teamId} className="pick-group">
-          <div className="pick-group-header">
-            <span className="pick-group-choice">
-              <span className="flag-icon" aria-hidden="true">{teamFlag(group.teamId)}</span>
-              <strong>{teamLabel(group.teamId)}</strong>
-            </span>
-            {withVerdict && winner !== null && (
-              <strong className={isCorrect ? 'pick-correct' : 'pick-wrong'}>
-                {isCorrect ? 'Correct' : isWrong ? 'Wrong' : ''}
-              </strong>
-            )}
-          </div>
-          <p className="pick-group-users">{group.userNames.join(', ')}</p>
+        <div key={s.user.id} className="ff-podium-col" style={{ animation: `ffrise .6s ${(3 - rank) * 0.08}s both` }}>
+          <div className="ff-podium-av" style={{ width: av, height: av, background: rc.ring, color: rc.num, boxShadow: rc.glow, fontSize: rank === 1 ? 26 : 21 }}>{rank}</div>
+          <div className="ff-podium-name">{s.user.name}</div>
+          <div className="ff-podium-pts">{s.points} pts</div>
+          <div className="ff-podium-bar" style={{ height: barH }} />
         </div>
       )
     })
+
+  const renderRanking = () =>
+    standings.map((r, i) => {
+      const rank = i + 1
+      const rc = rankRing(rank)
+      const pct = r.totalMatches ? Math.round((r.correctPicks / r.totalMatches) * 100) : 0
+      return (
+        <div key={r.user.id} className={`ff-rankrow${rank === 1 ? ' is-leader' : ''}`} style={{ animation: `fffade .5s ${i * 0.07}s both` }}>
+          <div className="ff-badge" style={{ background: rc.ring, color: rc.num, boxShadow: rc.glow }}>{rank}</div>
+          <div className="ff-rankrow-main">
+            <div className="ff-rankrow-name">{r.user.name}</div>
+            <div className="ff-rankrow-sub">{r.correctPicks} of {r.totalMatches} correct</div>
+            <div className="ff-track"><div className="ff-track-fill" style={{ width: `${pct}%` }} /></div>
+          </div>
+          <div className="ff-rankrow-r">
+            <div className="ff-rankrow-pts">{shown[r.user.id] ?? r.points}</div>
+            <div className="ff-rankrow-ptsl">pts</div>
+          </div>
+        </div>
+      )
+    })
+
+  // ----- Matches -----
+  const sortedPast = [...past].sort((a, b) => {
+    const t = new Date(a.kickoff).getTime() - new Date(b.kickoff).getTime()
+    return sort === 'recent' ? -t : t
+  })
+  const presult = (m: MatchRow, u: UserRow) => pickResult(pickSide(m, picksByMatch[m.id]?.[u.id]), winnerSide(m))
+  const filteredMatches = (filterPlayer !== 'Everyone' && filterResult !== 'all')
+    ? sortedPast.filter((m) => {
+        const r = presult(m, players.find((p) => p.name === filterPlayer)!)
+        return filterResult === 'correct' ? r === 'correct' : r !== 'correct'
+      })
+    : sortedPast
+  const winnerLabel = (m: MatchRow) => {
+    const w = winnerSide(m)
+    if (w === 'draw') return 'Draw'
+    if (w === 'home') return teamLabel(m.home_team_id)
+    if (w === 'away') return teamLabel(m.away_team_id)
+    return ''
+  }
+  const filterNote = filterPlayer === 'Everyone' ? 'Pick a friend to filter by result' : `Showing ${filterPlayer}'s record`
+
+  // ----- Vote / Upcoming -----
+  const longDay = (iso: string) => {
+    const wd = new Intl.DateTimeFormat('en-GB', { timeZone: 'America/Bogota', weekday: 'long' }).format(new Date(iso))
+    return `${wd} ${formatKickoffBogota(iso).day}`
+  }
+  const votedCount = (m: MatchRow) => players.filter((u) => picksByMatch[m.id]?.[u.id] !== undefined).length
+
+  const castVote = async (m: MatchRow, u: UserRow, side: Side) => {
+    const { error } = await submitPick(m.id, u.id, sideToTeamId(m, side))
+    if (!error) refresh()
   }
 
+  const upcomingGroups = (() => {
+    const groups = new Map<string, MatchRow[]>()
+    for (const m of upcoming) {
+      const key = longDay(m.kickoff)
+      ;(groups.get(key) ?? groups.set(key, []).get(key)!).push(m)
+    }
+    return Array.from(groups.entries()).map(([date, fixtures]) => ({ date, fixtures }))
+  })()
+
+  const seg = (active: boolean, sm = false) => `ff-segbtn${sm ? ' ff-segbtn--sm' : ''}${active ? ' is-active' : ''}`
+
   return (
-    <main className="app-shell">
-      <section className="hero-panel">
-        <div className="hero-copy">
-          <p className="eyebrow">World Cup pool · 2026</p>
-          <h1>FanFest — PoolParty</h1>
-          <p className="hero-description">
-            Live scores straight from the pitch. Each correct match winner earns {pointsPerCorrectPick} points.
-          </p>
-        </div>
+    <div className="ff-root" style={{ ...(THEMES[dir] as CSSProperties), background: ROOT_BG }}>
+      <div className="ff-wrap">
 
-        <div className="hero-stats" aria-label="Leaderboard summary">
-          <article>
-            <span>Matches</span>
-            <strong>{playedCount}</strong>
-          </article>
-          <article>
-            <span>Leader</span>
-            <strong>{leader?.user.name ?? 'N/A'}</strong>
-          </article>
-          <article>
-            <span>Top score</span>
-            <strong>{topScore} pts</strong>
-          </article>
-        </div>
-      </section>
-
-      {live.map((match) => {
-        const when = formatKickoffBogota(match.kickoff)
-        return (
-          <section key={match.id} className="live-section">
-            <div className="panel live-panel">
-              <div className="panel-header">
-                <div>
-                  <p className="panel-kicker">
-                    <span className="live-dot" aria-hidden="true" /> Live now
-                  </p>
-                  <h2>Happening on the pitch</h2>
-                </div>
-                <p className="panel-note">{when.day} · {when.time}</p>
-              </div>
-
-              <div className="live-scoreboard">
-                <div className="live-team">
-                  <span className="flag-icon flag-xl" aria-hidden="true">{teamFlag(match.home_team_id)}</span>
-                  <strong>{teamLabel(match.home_team_id)}</strong>
-                </div>
-                <div className="live-score">
-                  <span>{match.home_score ?? 0}</span>
-                  <span className="live-score-sep">:</span>
-                  <span>{match.away_score ?? 0}</span>
-                </div>
-                <div className="live-team live-team--right">
-                  <span className="flag-icon flag-xl" aria-hidden="true">{teamFlag(match.away_team_id)}</span>
-                  <strong>{teamLabel(match.away_team_id)}</strong>
-                </div>
-              </div>
-
-              <div className="match-picks">{renderPickGroups(match, false)}</div>
-            </div>
-          </section>
-        )
-      })}
-
-      <section className="content-grid">
-        <div className="content-col">
-          <article className="panel leaderboard-panel">
-            <div className="panel-header">
-              <div>
-                <p className="panel-kicker">Ranking</p>
-                <h2>Leaderboard</h2>
-              </div>
-              <p className="panel-note">{pointsPerCorrectPick} pts per correct winner</p>
-            </div>
-
-            <ol className="leaderboard-list">
-              {leaderboard.map((row, index) => (
-                <li key={row.user.id} className={`leaderboard-row${index === 0 ? ' leaderboard-row--leader' : ''}`}>
-                  <div className="rank-badge">{index + 1}</div>
-                  <div className="leaderboard-nameblock">
-                    <strong>{row.user.name}</strong>
-                    <span>{row.correctPicks} of {row.totalMatches} correct</span>
-                  </div>
-                  <div className="leaderboard-points">{row.points} pts</div>
-                </li>
-              ))}
-            </ol>
-          </article>
-
-          <PickEntry
-            users={data.users}
-            upcoming={upcoming}
-            teamLabel={teamLabel}
-            teamFlag={teamFlag}
-            picksByMatch={picksByMatch}
-            onSubmitted={refresh}
-          />
-        </div>
-
-        <article className="panel matches-panel">
-          <div className="panel-header">
-            <div>
-              <p className="panel-kicker">Results</p>
-              <h2>Matches</h2>
-            </div>
-            <p className="panel-note">Winner vs each pick</p>
+        {/* Header */}
+        <div className="ff-header">
+          <div className="ff-brand">
+            <div className="ff-brand-mark"><div className="ff-brand-dot" /></div>
+            <span className="ff-brand-name">FanFest · PoolParty</span>
           </div>
-
-          <div className="matches-list">
-            {past.length === 0 && <p className="pick-hint">No finished matches yet.</p>}
-            {past.map((match) => (
-              <article key={match.id} className="match-card">
-                <div className="match-topline">
-                  <span>{formatKickoffBogota(match.kickoff).day} · {formatKickoffBogota(match.kickoff).time}</span>
-                  <span className="winner-pill">
-                    {getMatchWinner(match) === 'draw' ? 'Draw' : `Winner: ${teamLabel(getMatchWinner(match) ?? '')}`}
-                  </span>
-                </div>
-
-                <div className="match-teams">
-                  <div className="team-block">
-                    <span className="flag-icon" aria-hidden="true">{teamFlag(match.home_team_id)}</span>
-                    <strong>{teamLabel(match.home_team_id)}</strong>
-                  </div>
-                  <div className="scoreline">
-                    <span>{match.home_score}</span>
-                    <span>—</span>
-                    <span>{match.away_score}</span>
-                  </div>
-                  <div className="team-block team-block-right">
-                    <strong>{teamLabel(match.away_team_id)}</strong>
-                    <span className="flag-icon" aria-hidden="true">{teamFlag(match.away_team_id)}</span>
-                  </div>
-                </div>
-
-                <div className="match-picks">{renderPickGroups(match, true)}</div>
-              </article>
+          <div className="ff-seg">
+            {DIRECTIONS.map((d) => (
+              <button key={d.key} className={seg(dir === d.key, true)} onClick={() => setDir(d.key)}>{d.label}</button>
             ))}
           </div>
-        </article>
-      </section>
-    </main>
+        </div>
+
+        {/* Hero */}
+        <div className="ff-hero">
+          <div className="ff-hero-glow g1" /><div className="ff-hero-glow g2" />
+          <div className="ff-hero-circle" /><div className="ff-hero-vline" /><div className="ff-hero-arc" />
+          <div className="ff-hero-row">
+            <div className="ff-hero-copy">
+              <div className="ff-hero-kicker">Soccer Leaderboard</div>
+              <h1 className="ff-hero-title">FanFest — PoolParty</h1>
+              <div className="ff-hero-sub">Each correct pick earns <strong>3 points</strong>.</div>
+            </div>
+            <div className="ff-stats">
+              <div className="ff-stat"><div className="ff-stat-l">Matches</div><div className="ff-stat-v">{past.length + live.length}</div></div>
+              <div className="ff-stat"><div className="ff-stat-l">Leader</div><div className="ff-stat-v gold">{leader?.user.name ?? 'N/A'}</div></div>
+              <div className="ff-stat"><div className="ff-stat-l">Top score</div><div className="ff-stat-v">{leader?.points ?? 0} <span className="unit">pts</span></div></div>
+            </div>
+          </div>
+        </div>
+
+        {/* Live banner */}
+        {liveMatch && (
+          <div className="ff-live">
+            <div className="ff-live-bar"><i /></div>
+            <div className="ff-live-head">
+              <div className="ff-live-badge">
+                <span className="ff-live-dot" />
+                <span className="ff-live-label">Live · {liveMinute}'</span>
+              </div>
+              <span className="ff-live-when">{formatKickoffBogota(liveMatch.kickoff).day} · {formatKickoffBogota(liveMatch.kickoff).time}</span>
+            </div>
+            <div className="ff-live-row">
+              <div className="ff-live-team home">
+                <span className="ff-live-name">{teamLabel(liveMatch.home_team_id)}</span>
+                <Flag teamId={liveMatch.home_team_id} emoji={teamEmoji(liveMatch.home_team_id)} size={38} />
+              </div>
+              <div className="ff-live-center">
+                <div className="ff-live-scorebox">
+                  <span className="ff-live-score">{liveMatch.home_score ?? 0}</span>
+                  <span className="ff-live-dash">–</span>
+                  <span className="ff-live-score">{liveMatch.away_score ?? 0}</span>
+                </div>
+                <span className="ff-live-min">{liveMinute}'</span>
+              </div>
+              <div className="ff-live-team">
+                <Flag teamId={liveMatch.away_team_id} emoji={teamEmoji(liveMatch.away_team_id)} size={38} />
+                <span className="ff-live-name">{teamLabel(liveMatch.away_team_id)}</span>
+              </div>
+            </div>
+            <div className="ff-live-foot">
+              <span className="ff-live-foot-label">Picks for <strong>{teamLabel(liveMatch.home_team_id)} vs {teamLabel(liveMatch.away_team_id)}</strong></span>
+              <div className="ff-chips">
+                {players.map((u, i) => {
+                  const s = pickSide(liveMatch, picksByMatch[liveMatch.id]?.[u.id])
+                  if (!s) return null
+                  const label = s === 'draw' ? 'Draw' : teamLabel(s === 'home' ? liveMatch.home_team_id : liveMatch.away_team_id)
+                  return <span key={u.id} className="ff-chip" title={`${u.name} · ${label}`}><span className="ff-chip-dot" style={dotStyle(u.name, i)} />{u.name}</span>
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Tabs */}
+        <div className="ff-tabs">
+          {(['leaderboard', 'vote', 'matches', 'upcoming'] as Tab[]).map((t) => (
+            <button key={t} className={seg(tab === t)} onClick={() => setTab(t)}>
+              {t[0].toUpperCase() + t.slice(1)}
+            </button>
+          ))}
+        </div>
+
+        {/* Leaderboard */}
+        {tab === 'leaderboard' && (
+          <div>
+            <div className="ff-podium">{renderPodium()}</div>
+            <div className="ff-rankcard">
+              <div className="ff-rankhead">
+                <div className="ff-rankhead-l">Full ranking</div>
+                <div className="ff-rankhead-r">3 points per correct winner</div>
+              </div>
+              {renderRanking()}
+            </div>
+          </div>
+        )}
+
+        {/* Vote */}
+        {tab === 'vote' && (
+          <div>
+            <div className="ff-vote-intro">Cast each member's pick before kickoff — <strong>3 points</strong> for every correct call. Picks lock at kickoff.</div>
+            <div className="ff-vote-list">
+              {upcoming.length === 0 && <div className="ff-poll">No upcoming matches to vote on.</div>}
+              {upcoming.map((m) => {
+                const total = votedCount(m)
+                const done = total === players.length
+                const keys: [Side, string][] = [['home', teamLabel(m.home_team_id)], ['draw', 'Draw'], ['away', teamLabel(m.away_team_id)]]
+                return (
+                  <div key={m.id} className="ff-poll">
+                    <div className="ff-poll-head">
+                      <span className="ff-poll-date">{formatKickoffBogota(m.kickoff).day} · {formatKickoffBogota(m.kickoff).time}</span>
+                      <span className="ff-voted" style={{ background: done ? 'rgba(94,224,160,.14)' : 'var(--panel2)', border: `1px solid ${done ? 'rgba(94,224,160,.4)' : 'var(--line)'}`, color: done ? 'var(--good)' : 'var(--muted)' }}>{total}/{players.length} voted</span>
+                    </div>
+                    <div className="ff-poll-teams">
+                      <div className="ff-poll-team"><Flag teamId={m.home_team_id} emoji={teamEmoji(m.home_team_id)} size={26} /><span className="ff-poll-tname">{teamLabel(m.home_team_id)}</span></div>
+                      <span className="ff-vs">vs</span>
+                      <div className="ff-poll-team away"><span className="ff-poll-tname">{teamLabel(m.away_team_id)}</span><Flag teamId={m.away_team_id} emoji={teamEmoji(m.away_team_id)} size={26} /></div>
+                    </div>
+                    <div className="ff-poll-opts">
+                      {keys.map(([side, label]) => {
+                        const members = players.filter((u) => pickSide(m, picksByMatch[m.id]?.[u.id]) === side)
+                        const pct = total ? Math.round((members.length / total) * 100) : 0
+                        return (
+                          <div key={side} className="ff-opt">
+                            <div className="ff-opt-head">
+                              <span className="ff-opt-label" style={{ color: OPT_COLOR[side] }}>{label}</span>
+                              <span className="ff-opt-count">{members.length}</span>
+                            </div>
+                            <div className="ff-opt-track"><div className="ff-opt-fill" style={{ background: OPT_COLOR[side], width: `${pct}%` }} /></div>
+                            <div className="ff-opt-mem">
+                              {members.map((u, i) => (
+                                <span key={u.id} className="ff-av" style={avatarStyle(u.name, players.indexOf(u), i > 0)}>{u.name[0]}</span>
+                              ))}
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                    <div className="ff-poll-voters">
+                      {players.map((u, pi) => {
+                        const current = pickSide(m, picksByMatch[m.id]?.[u.id])
+                        return (
+                          <div key={u.id} className="ff-voter">
+                            <div className="ff-voter-id">
+                              <span className="ff-av" style={avatarStyle(u.name, pi, false)}>{u.name[0]}</span>
+                              <span className="ff-voter-name">{u.name}</span>
+                            </div>
+                            <div className="ff-voter-opts">
+                              {keys.map(([side, label]) => {
+                                const active = current === side
+                                return (
+                                  <button key={side} className="ff-voteseg" style={active ? { borderColor: OPT_COLOR[side], background: OPT_COLOR[side], color: '#0a0f1c' } : undefined} onClick={() => castVote(m, u, side)}>{label}</button>
+                                )
+                              })}
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Matches */}
+        {tab === 'matches' && (
+          <div>
+            <div className="ff-filters">
+              <select className="ff-select" value={filterPlayer} onChange={(e) => setFilterPlayer(e.target.value)}>
+                <option value="Everyone">All players</option>
+                {players.map((u) => <option key={u.id} value={u.name}>{u.name}</option>)}
+              </select>
+              <div className="ff-seg">
+                {([['all', 'All'], ['correct', 'Correct'], ['wrong', 'Missed']] as const).map(([k, l]) => (
+                  <button key={k} className={seg(filterResult === k, true)} onClick={() => setFilterResult(k)}>{l}</button>
+                ))}
+              </div>
+              <button className="ff-segbtn ff-segbtn--sm" style={{ borderColor: 'var(--line)' }} onClick={() => setSort(sort === 'recent' ? 'oldest' : 'recent')}>
+                {sort === 'recent' ? 'Newest first ↓' : 'Oldest first ↑'}
+              </button>
+              <span className="ff-filter-note">{filterNote}</span>
+            </div>
+            <div className="ff-matches">
+              {filteredMatches.map((m) => {
+                const w = winnerSide(m)
+                return (
+                  <div key={m.id} className="ff-match">
+                    <div className="ff-match-top">
+                      <span className="ff-match-date">{formatKickoffBogota(m.kickoff).day} · {formatKickoffBogota(m.kickoff).time}</span>
+                      <span className="ff-winpill">Winner · {winnerLabel(m)}</span>
+                    </div>
+                    <div className="ff-match-row">
+                      <div className="ff-match-team">
+                        <Flag teamId={m.home_team_id} emoji={teamEmoji(m.home_team_id)} size={30} />
+                        <span className="ff-match-name" style={{ fontWeight: w === 'home' ? 800 : 600, color: w === 'home' ? 'var(--ink)' : 'var(--muted)' }}>{teamLabel(m.home_team_id)}</span>
+                      </div>
+                      <div className="ff-scorebox">
+                        <span className="ff-scorenum">{m.home_score}</span><span className="ff-live-dash">–</span><span className="ff-scorenum">{m.away_score}</span>
+                      </div>
+                      <div className="ff-match-team away">
+                        <span className="ff-match-name" style={{ fontWeight: w === 'away' ? 800 : 600, color: w === 'away' ? 'var(--ink)' : 'var(--muted)', textAlign: 'right' }}>{teamLabel(m.away_team_id)}</span>
+                        <Flag teamId={m.away_team_id} emoji={teamEmoji(m.away_team_id)} size={30} />
+                      </div>
+                    </div>
+                    <div className="ff-match-picks">
+                      {players.map((u, i) => {
+                        const r = presult(m, u)
+                        const ps = pickSide(m, picksByMatch[m.id]?.[u.id])
+                        const lbl = ps === null ? 'No pick' : ps === 'draw' ? 'Draw' : teamLabel(ps === 'home' ? m.home_team_id : m.away_team_id)
+                        return (
+                          <span key={u.id} className="ff-pick" style={pickChipStyle(r, filterPlayer !== 'Everyone' && filterPlayer !== u.name)} title={`${u.name} picked ${lbl}`}>
+                            <span className="ff-chip-dot" style={dotStyle(u.name, i)} />{u.name}
+                            <span className="ff-pick-icon">{r === 'correct' ? '✓' : r === 'wrong' ? '✕' : '·'}</span>
+                          </span>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Upcoming */}
+        {tab === 'upcoming' && (
+          <div className="ff-up">
+            {upcomingGroups.map((g) => (
+              <div key={g.date}>
+                <div className="ff-up-date">{g.date}</div>
+                <div className="ff-up-list">
+                  {g.fixtures.map((m) => {
+                    const total = votedCount(m)
+                    const done = total === players.length
+                    return (
+                      <div key={m.id} className="ff-up-fix">
+                        <span className="ff-up-time">{formatKickoffBogota(m.kickoff).time}</span>
+                        <div className="ff-up-teams">
+                          <Flag teamId={m.home_team_id} emoji={teamEmoji(m.home_team_id)} size={26} /><span className="ff-up-tname">{teamLabel(m.home_team_id)}</span>
+                          <span className="ff-up-vs">vs</span>
+                          <span className="ff-up-tname">{teamLabel(m.away_team_id)}</span><Flag teamId={m.away_team_id} emoji={teamEmoji(m.away_team_id)} size={26} />
+                        </div>
+                        <button className="ff-up-btn" style={{ background: done ? 'rgba(94,224,160,.14)' : 'var(--accentSoft)', border: `1px solid ${done ? 'rgba(94,224,160,.4)' : 'var(--line)'}`, color: done ? 'var(--good)' : 'var(--ink)' }} onClick={() => setTab('vote')}>
+                          {total}/{players.length} voted · Open vote →
+                        </button>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            ))}
+            {upcomingGroups.length === 0 && <div className="ff-up-fix">No upcoming fixtures.</div>}
+          </div>
+        )}
+
+      </div>
+    </div>
   )
 }
 
