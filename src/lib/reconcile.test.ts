@@ -56,8 +56,14 @@ describe('reconcileMatches', () => {
     const { updates, unmatched } = reconcileMatches([parsed({})], our)
     expect(unmatched).toHaveLength(0)
     expect(updates).toEqual([
-      { id: 'match-12', highlightly_match_id: 1267460611, home_score: 0, away_score: 1, state: 'live' },
+      { id: 'match-12', highlightly_match_id: 1267460611, home_score: 0, away_score: 1, state: 'live', status_clock: null, status_description: null },
     ])
+  })
+
+  it('threads the API clock and raw status description through to the update', () => {
+    const our = [match({ id: 'match-12', highlightly_match_id: 1267460611, home_team_id: 'bel', away_team_id: 'egy' })]
+    const { updates } = reconcileMatches([parsed({ clock: 45, statusDescription: 'Half time' })], our)
+    expect(updates[0]).toMatchObject({ status_clock: 45, status_description: 'Half time' })
   })
 
   it('matches by team pair when no highlightly id is set yet, aligning scores to our orientation', () => {

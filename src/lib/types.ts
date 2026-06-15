@@ -24,6 +24,10 @@ export type MatchRow = {
   away_score: number | null
   state: MatchState
   highlightly_match_id: number | null
+  // Live status from the API. Optional so older/not-yet-polled rows still type.
+  status_clock?: number | null // the match minute the API last reported (e.g. 45)
+  status_description?: string | null // raw API status, e.g. "Half time", "Second half"
+  status_observed_at?: string | null // ISO time the poller recorded the above
 }
 
 export type PickRow = {
@@ -43,6 +47,8 @@ export type ParsedMatch = {
   homeScore: number | null
   awayScore: number | null
   state: MatchState
+  clock?: number | null // API match minute (state.clock)
+  statusDescription?: string | null // raw API status (state.description)
 }
 
 // Shape of the legacy bundled JSON (src/data/leaderboard.json).

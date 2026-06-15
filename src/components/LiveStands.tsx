@@ -10,10 +10,10 @@ type Props = {
   picksByMatch: Record<string, Record<string, string>>
   teamLabel: (id: string) => string
   teamEmoji: (id: string) => string | undefined
-  liveMinute: number
+  liveLabel: string
 }
 
-export function LiveStands({ match, players, picksByMatch, teamLabel, teamEmoji, liveMinute }: Props) {
+export function LiveStands({ match, players, picksByMatch, teamLabel, teamEmoji, liveLabel }: Props) {
   const sideOf = (u: UserRow) => pickSide(match, picksByMatch[match.id]?.[u.id])
   const indexOf = (u: UserRow) => players.indexOf(u)
   const home = players.filter((u) => sideOf(u) === 'home')
@@ -31,7 +31,7 @@ export function LiveStands({ match, players, picksByMatch, teamLabel, teamEmoji,
         <div className="ff-bc-glow a" /><div className="ff-bc-glow b" />
         <div className="ff-bc-min">
           <span className="ff-live-dot" />
-          <span className="ff-live-label">{liveMinute}'</span>
+          <span className="ff-live-label">{liveLabel}</span>
           <span className="ff-bc-when">{when.day} · {when.time}</span>
         </div>
         <div className="ff-bc-row">

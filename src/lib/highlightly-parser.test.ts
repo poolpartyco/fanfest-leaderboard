@@ -81,7 +81,7 @@ describe('parseMatchesResponse', () => {
     })
   })
 
-  it('maps the live "Second half" item to live with parsed score', () => {
+  it('maps the live "Second half" item to live with parsed score, clock, and description', () => {
     const result = parseMatchesResponse(fixture)
     const match = result.find((m) => m.highlightlyMatchId === 1267460611)!
     expect(match).toMatchObject({
@@ -90,6 +90,30 @@ describe('parseMatchesResponse', () => {
       homeScore: 0,
       awayScore: 1,
       state: 'live',
+      clock: 58,
+      statusDescription: 'Second half',
+    })
+  })
+
+  it('keeps a Half time match live while capturing its clock and raw description', () => {
+    const json = {
+      data: [
+        {
+          id: 7,
+          date: '2026-06-15T22:00:00.000Z',
+          homeTeam: { id: 20357, name: 'Saudi Arabia' },
+          awayTeam: { id: 6741, name: 'Uruguay' },
+          state: { clock: 45, description: 'Half time', score: { current: '1 - 0' } },
+        },
+      ],
+    }
+    const [match] = parseMatchesResponse(json)
+    expect(match).toMatchObject({
+      state: 'live',
+      clock: 45,
+      statusDescription: 'Half time',
+      homeScore: 1,
+      awayScore: 0,
     })
   })
 

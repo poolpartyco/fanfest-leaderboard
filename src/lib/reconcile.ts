@@ -69,6 +69,8 @@ export type MatchUpdate = {
   home_score: number | null
   away_score: number | null
   state: MatchState
+  status_clock: number | null
+  status_description: string | null
 }
 
 export function reconcileMatches(
@@ -111,7 +113,8 @@ export function reconcileMatches(
       continue
     }
 
-    // Align scores to OUR home/away orientation.
+    // Align scores to OUR home/away orientation. Clock/status are
+    // orientation-independent, so they pass straight through.
     const sameOrientation = target.home_team_id === homeLocal
     updates.push({
       id: target.id,
@@ -119,6 +122,8 @@ export function reconcileMatches(
       home_score: sameOrientation ? p.homeScore : p.awayScore,
       away_score: sameOrientation ? p.awayScore : p.homeScore,
       state: p.state,
+      status_clock: p.clock ?? null,
+      status_description: p.statusDescription ?? null,
     })
   }
 

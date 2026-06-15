@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { useLeaderboardData } from './lib/useLeaderboardData'
 import { buildLeaderboard } from './lib/scoring'
 import { partitionMatches, formatKickoffBogota, buildPicksByMatch } from './lib/view'
-import { winnerSide, pickSide, pickResult, sideToTeamId, type Side } from './lib/designView'
+import { winnerSide, pickSide, pickResult, sideToTeamId, liveClockLabel, type Side } from './lib/designView'
 import { THEMES, playerColor } from './lib/themes'
 import { submitPick } from './lib/picks'
 import { avatarFor } from './lib/avatars'
@@ -103,9 +103,9 @@ function App() {
   const { teamLabel, teamEmoji, standings, live, past, upcoming, picksByMatch, players } = vm
   const leader = standings[0]
   const liveMatch = live[0]
-  const liveMinute = liveMatch
-    ? Math.min(90, Math.max(1, Math.floor((Date.now() - new Date(liveMatch.kickoff).getTime()) / 60_000)))
-    : null
+  // Truthful live label from the API status (HT / FT / extrapolated minute),
+  // re-derived each render; the 30s tick above keeps it moving.
+  const liveLabel = liveMatch ? liveClockLabel(liveMatch, Date.now()) : null
 
   const dotStyle = (name: string, i: number): CSSProperties => ({ background: playerColor(name, i) })
   const avatarStyle = (name: string, i: number, neg: boolean): CSSProperties =>
@@ -255,14 +255,14 @@ function App() {
         </div>
 
         {/* Banner: live match, else last result + next-up poll */}
-        {liveMatch && liveMinute !== null && !noLive ? (
+        {liveMatch && liveLabel !== null && !noLive ? (
           <LiveStands
             match={liveMatch}
             players={players}
             picksByMatch={picksByMatch}
             teamLabel={teamLabel}
             teamEmoji={teamEmoji}
-            liveMinute={liveMinute}
+            liveLabel={liveLabel}
           />
         ) : (
           <>

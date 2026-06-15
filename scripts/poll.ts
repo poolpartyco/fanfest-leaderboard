@@ -63,6 +63,9 @@ async function main() {
         home_score: u.home_score,
         away_score: u.away_score,
         state: u.state,
+        status_clock: u.status_clock,
+        status_description: u.status_description,
+        status_observed_at: now.toISOString(),
       })
       .eq('id', u.id)
     if (error) console.error(`✗ update ${u.id} failed:`, error)

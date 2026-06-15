@@ -48,6 +48,9 @@ export function parseMatchesResponse(json: unknown): ParsedMatch[] {
     if (item.id == null) continue
 
     const score = parseScore(item.state?.score?.current)
+    const rawClock = item.state?.clock
+    const clock = typeof rawClock === 'number' ? rawClock : null
+    const description = typeof item.state?.description === 'string' ? item.state.description : null
 
     result.push({
       highlightlyMatchId: item.id,
@@ -59,6 +62,8 @@ export function parseMatchesResponse(json: unknown): ParsedMatch[] {
       homeScore: score.home,
       awayScore: score.away,
       state: mapState(item.state?.description),
+      clock,
+      statusDescription: description,
     })
   }
 
