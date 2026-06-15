@@ -4,7 +4,7 @@ import { useLeaderboardData } from './lib/useLeaderboardData'
 import { buildLeaderboard } from './lib/scoring'
 import { partitionMatches, formatKickoffBogota, buildPicksByMatch } from './lib/view'
 import { winnerSide, pickSide, pickResult, sideToTeamId, type Side } from './lib/designView'
-import { DIRECTIONS, THEMES, playerColor, type DirectionKey } from './lib/themes'
+import { THEMES, playerColor } from './lib/themes'
 import { submitPick } from './lib/picks'
 import { Flag } from './components/Flag'
 import type { MatchRow, TeamRow, UserRow } from './lib/types'
@@ -37,8 +37,6 @@ function App() {
   const { data, loading, error, refresh } = useLeaderboardData()
   const hash = typeof window !== 'undefined' ? window.location.hash.slice(1).split('/') : []
   const initialTab = (['leaderboard', 'vote', 'matches', 'upcoming'] as const).find((t) => t === hash[0]) ?? 'leaderboard'
-  const initialDir = (['editorial', 'broadcast', 'fiesta'] as const).find((d) => d === hash[1]) ?? 'editorial'
-  const [dir, setDir] = useState<DirectionKey>(initialDir)
   const [tab, setTab] = useState<Tab>(initialTab)
   const [sort, setSort] = useState<'recent' | 'oldest'>('recent')
   const [filterPlayer, setFilterPlayer] = useState<string>('Everyone')
@@ -86,14 +84,14 @@ function App() {
 
   if (loading) {
     return (
-      <div className="ff-root" style={{ ...(THEMES[dir] as CSSProperties), background: ROOT_BG }}>
+      <div className="ff-root" style={{ ...(THEMES.fiesta as CSSProperties), background: ROOT_BG }}>
         <div className="ff-state"><span className="ff-spinner" /><p>Loading the leaderboard…</p></div>
       </div>
     )
   }
   if (error || !vm) {
     return (
-      <div className="ff-root" style={{ ...(THEMES[dir] as CSSProperties), background: ROOT_BG }}>
+      <div className="ff-root" style={{ ...(THEMES.fiesta as CSSProperties), background: ROOT_BG }}>
         <div className="ff-state"><p className="ff-state-title">Couldn’t load data</p><p>{error ?? 'Unknown error'}</p></div>
       </div>
     )
@@ -194,7 +192,7 @@ function App() {
   const seg = (active: boolean, sm = false) => `ff-segbtn${sm ? ' ff-segbtn--sm' : ''}${active ? ' is-active' : ''}`
 
   return (
-    <div className="ff-root" style={{ ...(THEMES[dir] as CSSProperties), background: ROOT_BG }}>
+    <div className="ff-root" style={{ ...(THEMES.fiesta as CSSProperties), background: ROOT_BG }}>
       <div className="ff-wrap">
 
         {/* Header */}
@@ -202,11 +200,6 @@ function App() {
           <div className="ff-brand">
             <div className="ff-brand-mark"><div className="ff-brand-dot" /></div>
             <span className="ff-brand-name">FanFest · PoolParty</span>
-          </div>
-          <div className="ff-seg">
-            {DIRECTIONS.map((d) => (
-              <button key={d.key} className={seg(dir === d.key, true)} onClick={() => setDir(d.key)}>{d.label}</button>
-            ))}
           </div>
         </div>
 
