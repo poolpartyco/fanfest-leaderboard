@@ -9,6 +9,7 @@ import { submitPick } from './lib/picks'
 import { avatarFor } from './lib/avatars'
 import { Flag } from './components/Flag'
 import { LiveStands } from './components/LiveStands'
+import { NextUpPoll } from './components/NextUpPoll'
 import type { MatchRow, TeamRow, UserRow } from './lib/types'
 
 type Tab = 'leaderboard' | 'vote' | 'matches' | 'upcoming'
@@ -215,6 +216,14 @@ function App() {
 
   const seg = (active: boolean, sm = false) => `ff-segbtn${sm ? ' ff-segbtn--sm' : ''}${active ? ' is-active' : ''}`
 
+  // Banner: a live match takes the slot; otherwise the last result + next poll.
+  // ?preview=next forces the no-live view for previewing.
+  const forceNext = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('preview') === 'next'
+  const noLive = !liveMatch || forceNext
+  const ftMatch = noLive ? past[0] ?? null : null
+  const ftCorrectNames = ftMatch ? players.filter((u) => presult(ftMatch, u) === 'correct').map((u) => u.name) : []
+  const nextMatch = noLive ? upcoming[0] ?? null : null
+
   return (
     <div className="ff-root" style={{ ...(THEMES.fiesta as CSSProperties), background: ROOT_BG }}>
       <div className="ff-wrap">
@@ -245,8 +254,8 @@ function App() {
           </div>
         </div>
 
-        {/* Live banner — Broadcast Stands */}
-        {liveMatch && liveMinute !== null && (
+        {/* Banner: live match, else last result + next-up poll */}
+        {liveMatch && liveMinute !== null && !noLive ? (
           <LiveStands
             match={liveMatch}
             players={players}
@@ -255,6 +264,30 @@ function App() {
             teamEmoji={teamEmoji}
             liveMinute={liveMinute}
           />
+        ) : (
+          <>
+            {ftMatch && (
+              <div className="ff-ft">
+                <span className="ff-ft-tag">Full time</span>
+                <span className="ff-ft-score">
+                  <Flag teamId={ftMatch.home_team_id} emoji={teamEmoji(ftMatch.home_team_id)} size={24} />
+                  <b>{teamLabel(ftMatch.home_team_id)} {ftMatch.home_score} - {ftMatch.away_score} {teamLabel(ftMatch.away_team_id)}</b>
+                  <Flag teamId={ftMatch.away_team_id} emoji={teamEmoji(ftMatch.away_team_id)} size={24} />
+                </span>
+                <span className="ff-ft-when">{ftCorrectNames.length ? `${ftCorrectNames.join(', ')} called it, +3 pts` : 'Nobody called it'}</span>
+              </div>
+            )}
+            {nextMatch && (
+              <NextUpPoll
+                match={nextMatch}
+                players={players}
+                picksByMatch={picksByMatch}
+                teamLabel={teamLabel}
+                teamEmoji={teamEmoji}
+                onVote={() => setTab('vote')}
+              />
+            )}
+          </>
         )}
 
         {/* Tabs */}
