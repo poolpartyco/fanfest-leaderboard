@@ -2,7 +2,7 @@ import './App.css'
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { useLeaderboardData } from './lib/useLeaderboardData'
 import { buildLeaderboard } from './lib/scoring'
-import { partitionMatches, formatKickoffBogota, buildPicksByMatch } from './lib/view'
+import { partitionMatches, formatKickoffBogota, buildPicksByMatch, voteDayMatches } from './lib/view'
 import { winnerSide, pickSide, pickResult, sideToTeamId, liveClockLabel, type Side } from './lib/designView'
 import { THEMES, playerColor } from './lib/themes'
 import { submitPick } from './lib/picks'
@@ -10,6 +10,7 @@ import { avatarFor } from './lib/avatars'
 import { Flag } from './components/Flag'
 import { LiveStands } from './components/LiveStands'
 import { NextUpPoll } from './components/NextUpPoll'
+import { VoteCountdown } from './components/VoteCountdown'
 import type { MatchRow, TeamRow, UserRow } from './lib/types'
 
 type Tab = 'leaderboard' | 'vote' | 'matches' | 'upcoming'
@@ -37,7 +38,7 @@ const ROOT_BG =
   'var(--bg0)'
 
 function App() {
-  const { data, loading, error, refresh } = useLeaderboardData()
+  const { data, loading, error, refresh, applyPick } = useLeaderboardData()
   const hash = typeof window !== 'undefined' ? window.location.hash.slice(1).split('/') : []
   const initialTab = (['leaderboard', 'vote', 'matches', 'upcoming'] as const).find((t) => t === hash[0]) ?? 'leaderboard'
   const [tab, setTab] = useState<Tab>(initialTab)
@@ -197,12 +198,20 @@ function App() {
     const wd = new Intl.DateTimeFormat('en-GB', { timeZone: 'America/Bogota', weekday: 'long' }).format(new Date(iso))
     return `${wd} ${formatKickoffBogota(iso).day}`
   }
+  // Vote tab only shows the current day's fixtures (falls back to the soonest
+  // upcoming matchday so it's never empty).
+  const voteMatches = voteDayMatches(upcoming, new Date())
   const votedCount = (m: MatchRow) => players.filter((u) => picksByMatch[m.id]?.[u.id] !== undefined).length
   const sideMembers = (m: MatchRow, side: Side) => players.filter((u) => pickSide(m, picksByMatch[m.id]?.[u.id]) === side)
 
-  const castVote = async (m: MatchRow, u: UserRow, side: Side) => {
-    const { error } = await submitPick(m.id, u.id, sideToTeamId(m, side))
-    if (!error) refresh()
+  // Optimistic: reflect the pick instantly, then persist in the background.
+  // Only re-sync from the server if the write fails (e.g. locked at kickoff).
+  const castVote = (m: MatchRow, u: UserRow, side: Side) => {
+    const teamId = sideToTeamId(m, side)
+    applyPick(m.id, u.id, teamId)
+    void submitPick(m.id, u.id, teamId).then(({ error }) => {
+      if (error) refresh()
+    })
   }
 
   const upcomingGroups = (() => {
@@ -318,8 +327,8 @@ function App() {
           <div>
             <div className="ff-vote-intro">Cast each member's pick before kickoff. <strong>3 points</strong> for every correct call, and picks lock at kickoff.</div>
             <div className="ff-vote-list">
-              {upcoming.length === 0 && <div className="ff-poll">No upcoming matches to vote on.</div>}
-              {upcoming.map((m) => {
+              {voteMatches.length === 0 && <div className="ff-poll">No upcoming matches to vote on.</div>}
+              {voteMatches.map((m) => {
                 const total = votedCount(m)
                 const done = total === players.length
                 const keys: [Side, string][] = [['home', teamLabel(m.home_team_id)], ['draw', 'Draw'], ['away', teamLabel(m.away_team_id)]]
@@ -327,6 +336,7 @@ function App() {
                   <div key={m.id} className="ff-poll">
                     <div className="ff-poll-head">
                       <span className="ff-poll-date">{formatKickoffBogota(m.kickoff).day} · {formatKickoffBogota(m.kickoff).time}</span>
+                      <VoteCountdown kickoff={m.kickoff} />
                       <span className="ff-voted" style={{ background: done ? 'rgba(94,224,160,.14)' : 'var(--panel2)', border: `1px solid ${done ? 'rgba(94,224,160,.4)' : 'var(--line)'}`, color: done ? 'var(--good)' : 'var(--muted)' }}>{total}/{players.length} voted</span>
                     </div>
                     <div className="ff-poll-teams">

@@ -3,6 +3,7 @@ import { pickSide } from '../lib/designView'
 import { formatKickoffBogota } from '../lib/view'
 import { Flag } from './Flag'
 import { PlayerAvatar as Avatar } from './PlayerAvatar'
+import { VoteCountdown } from './VoteCountdown'
 
 type Props = {
   match: MatchRow
@@ -44,7 +45,11 @@ export function NextUpPoll({ match, players, picksByMatch, teamLabel, teamEmoji,
             <Flag teamId={match.home_team_id} emoji={teamEmoji(match.home_team_id)} size={64} />
             <b>{homeName}</b>
           </div>
-          <div className="ff-bc-vs"><span className="ff-bc-vsk">VS</span><small>Kickoff {when.time}</small></div>
+          <div className="ff-bc-vs">
+            <span className="ff-bc-vsk">VS</span>
+            <small>Kickoff {when.time}</small>
+            <VoteCountdown kickoff={match.kickoff} />
+          </div>
           <div className="ff-bc-team">
             <Flag teamId={match.away_team_id} emoji={teamEmoji(match.away_team_id)} size={64} />
             <b>{awayName}</b>
