@@ -45,6 +45,18 @@ export function useLeaderboardData() {
     })
   }, [])
 
+  // Optimistically set a pick in local state so the UI reacts instantly,
+  // before (or instead of) a network round-trip. Replaces any existing pick
+  // for the same (match, user).
+  const applyPick = useCallback((matchId: string, userId: string, pickedTeamId: string) => {
+    setState((s) => {
+      if (!s.data) return s
+      const picks = s.data.picks.filter((p) => !(p.match_id === matchId && p.user_id === userId))
+      picks.push({ match_id: matchId, user_id: userId, picked_team_id: pickedTeamId })
+      return { ...s, data: { ...s.data, picks } }
+    })
+  }, [])
+
   useEffect(() => {
     load()
   }, [load])
@@ -57,5 +69,5 @@ export function useLeaderboardData() {
     return () => clearInterval(id)
   }, [hasLive, load])
 
-  return { ...state, refresh: () => load(true) }
+  return { ...state, refresh: () => load(true), applyPick }
 }

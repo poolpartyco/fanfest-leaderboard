@@ -11,13 +11,15 @@ body {
 }
 
 body {
-  min-height: 100vh;
+  min-height: 100dvh;
   background: #070b14;
   font-family: 'Instrument Sans', system-ui, -apple-system, sans-serif;
+  /* Stop iOS letting wide children scroll the page sideways. */
+  overflow-x: hidden;
 }
 
 #root {
-  min-height: 100vh;
+  min-height: 100dvh;
 }
 
 button {

@@ -2,7 +2,7 @@
    every class below resolves them via var(--…). */
 
 .ff-root {
-  min-height: 100vh;
+  min-height: 100dvh;
   font-family: 'Instrument Sans', system-ui, -apple-system, sans-serif;
   color: var(--ink, #eef3fb);
 }
@@ -204,6 +204,17 @@
 .ff-voter-opts { display: flex; gap: 6px; flex: 1; }
 .ff-voteseg { flex: 1; padding: 8px 6px; border-radius: 9px; font-size: 12px; font-weight: 700; cursor: pointer; border: 1px solid var(--line); background: var(--panel2); color: var(--muted); transition: all .15s; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
+/* Countdown to kickoff (vote cards + next-up banner) */
+.ff-cd { display: inline-flex; align-items: center; gap: 7px; padding: 5px 11px; border-radius: 999px; font-size: 12px; font-weight: 700; background: var(--accentSoft); border: 1px solid var(--line); color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ff-cd-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); flex: 0 0 auto; }
+.ff-cd.is-soon { background: rgba(255, 122, 138, .12); border-color: rgba(255, 122, 138, .45); color: var(--bad); }
+.ff-cd.is-soon .ff-cd-dot { background: var(--bad); animation: ffpulse 1.3s ease-in-out infinite; }
+.ff-cd.is-locked { background: var(--panel2); color: var(--faint); }
+.ff-cd.is-locked .ff-cd-dot { background: var(--faint); }
+@media (prefers-reduced-motion: reduce) {
+  .ff-cd.is-soon .ff-cd-dot { animation: none; }
+}
+
 /* Upcoming */
 .ff-up { display: flex; flex-direction: column; gap: 24px; }
 .ff-up-date { font-family: var(--display); font-weight: 800; font-size: 22px; color: var(--ink); margin-bottom: 14px; }
@@ -226,4 +237,46 @@
   .ff-poll-opts { grid-template-columns: 1fr; }
   .ff-voter { flex-direction: column; align-items: stretch; }
   .ff-voter-id { width: auto; }
+}
+
+/* ===== Phone responsiveness =====
+   The layout is already fluid (clamp + flex-wrap) down to tablet; these rules
+   tune phones: no sideways overflow, one-row tabs, stacked banner, and a
+   podium that stays three-across instead of wrapping to a broken 2 + 1. */
+@media (max-width: 768px) {
+  .ff-wrap { padding: 16px clamp(12px, 4vw, 20px) calc(56px + env(safe-area-inset-bottom)); }
+
+  /* Tabs fill the row; scroll instead of overflowing if labels are too wide. */
+  .ff-tabs { display: flex; width: 100%; overflow-x: auto; scrollbar-width: none; }
+  .ff-tabs::-webkit-scrollbar { display: none; }
+  .ff-tabs .ff-segbtn { flex: 1 0 auto; padding: 10px 8px; font-size: 12.5px; }
+
+  /* Hero stats: one tidy row instead of an awkward 2 + 1 wrap. */
+  .ff-stats { width: 100%; }
+  .ff-stat { flex: 1; min-width: 0; padding: 12px; }
+  .ff-stat-l { font-size: 10.5px; }
+  .ff-stat-v { font-size: 21px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+}
+
+@media (max-width: 600px) {
+  /* Broadcast banner: bring the floating minute/next badge into normal flow so
+     it can't overlap the team names, and stack home / score / away vertically. */
+  .ff-bc-min { position: static; justify-content: center; flex-wrap: wrap; margin-bottom: 12px; }
+  .ff-bc-top { padding: 18px clamp(16px, 4vw, 22px) 22px; }
+  .ff-bc-row { flex-direction: column; gap: 14px; }
+}
+
+@media (max-width: 480px) {
+  /* Keep the podium three-across. */
+  .ff-podium { gap: 8px; }
+  .ff-podium-col { width: auto; flex: 1; min-width: 0; }
+  .ff-podium-name { font-size: 15px; }
+
+  /* Comfier, more tappable rows and controls. */
+  .ff-rankrow { gap: 12px; padding: 14px 10px; }
+  .ff-rankrow-pts { font-size: 23px; }
+  .ff-voteseg { padding: 11px 6px; }
+  .ff-match, .ff-poll { padding: 16px 16px; }
+  .ff-up-fix { padding: 14px 16px; }
+  .ff-filter-note { margin-left: 0; width: 100%; }
 }
