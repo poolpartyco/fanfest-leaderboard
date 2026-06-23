@@ -4,6 +4,7 @@ import {
   MIN_POLL_INTERVAL_MINUTES,
   isInLiveWindow,
   shouldPoll,
+  liveTargetDates,
 } from './poller-decision'
 import type { MatchRow } from './types'
 
@@ -175,5 +176,63 @@ describe('shouldPoll', () => {
       minIntervalMinutes: 20,
     })
     expect(result).toEqual({ poll: false, reason: 'throttled' })
+  })
+
+  it('keeps polling a match we still believe is live even past its time window', () => {
+    // A delayed match runs long: now is 3h after kickoff (past the 150min
+    // window) but the API last told us it is still live. We must keep polling
+    // so we eventually catch its finish, instead of freezing the score.
+    const delayed = makeMatch({ kickoff: '2026-06-15T14:00:00Z', state: 'live' })
+    const result = shouldPoll({
+      matches: [delayed],
+      now: new Date('2026-06-15T17:00:00Z'),
+      requestCountToday: 3,
+      lastPolledAt: '2026-06-15T16:50:00Z',
+    })
+    expect(result).toEqual({ poll: true, reason: 'live-match' })
+  })
+})
+
+describe('liveTargetDates', () => {
+  const today = '2026-06-22'
+
+  it('falls back to today when nothing is live (daily-discovery run)', () => {
+    const future = makeMatch({ kickoff: '2026-06-25T18:00:00Z', state: 'scheduled' })
+    expect(liveTargetDates([future], new Date('2026-06-22T12:00:00Z'), today)).toEqual([today])
+  })
+
+  it('returns the single UTC date of one live match', () => {
+    const live = makeMatch({ kickoff: '2026-06-22T18:00:00Z', state: 'live' })
+    expect(liveTargetDates([live], new Date('2026-06-22T18:30:00Z'), today)).toEqual(['2026-06-22'])
+  })
+
+  it('returns ONE date for two concurrent matches on the same UTC day', () => {
+    const a = makeMatch({ id: 'a', kickoff: '2026-06-22T18:00:00Z', state: 'live' })
+    const b = makeMatch({ id: 'b', kickoff: '2026-06-22T18:00:00Z', state: 'live' })
+    expect(liveTargetDates([a, b], new Date('2026-06-22T18:30:00Z'), today)).toEqual(['2026-06-22'])
+  })
+
+  it('returns BOTH dates for concurrent matches straddling UTC midnight', () => {
+    // The real bug: France 21:00Z (22nd) live alongside Norway 00:00Z (23rd).
+    const france = makeMatch({ id: 'fra', kickoff: '2026-06-22T21:00:00Z', state: 'live' })
+    const norway = makeMatch({ id: 'nor', kickoff: '2026-06-23T00:00:00Z', state: 'live' })
+    const now = new Date('2026-06-23T00:24:00Z')
+    expect(liveTargetDates([france, norway], now, '2026-06-23')).toEqual([
+      '2026-06-22',
+      '2026-06-23',
+    ])
+  })
+
+  it("includes a delayed match's date even when it is past its time window", () => {
+    // France is past kickoff+150min but still flagged live; its date must still
+    // be fetched so the stale score gets refreshed.
+    const france = makeMatch({ id: 'fra', kickoff: '2026-06-22T21:00:00Z', state: 'live' })
+    const now = new Date('2026-06-23T00:24:00Z') // 3h24m after kickoff, past window
+    expect(liveTargetDates([france], now, '2026-06-23')).toEqual(['2026-06-22'])
+  })
+
+  it('excludes finished matches', () => {
+    const done = makeMatch({ kickoff: '2026-06-22T18:00:00Z', state: 'finished' })
+    expect(liveTargetDates([done], new Date('2026-06-22T18:30:00Z'), today)).toEqual([today])
   })
 })
