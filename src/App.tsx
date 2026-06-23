@@ -103,10 +103,7 @@ function App() {
 
   const { teamLabel, teamEmoji, standings, live, past, upcoming, picksByMatch, players } = vm
   const leader = standings[0]
-  const liveMatch = live[0]
-  // Truthful live label from the API status (HT / FT / extrapolated minute),
-  // re-derived each render; the 30s tick above keeps it moving.
-  const liveLabel = liveMatch ? liveClockLabel(liveMatch, Date.now()) : null
+  const hasLive = live.length > 0
 
   const dotStyle = (name: string, i: number): CSSProperties => ({ background: playerColor(name, i) })
   const avatarStyle = (name: string, i: number, neg: boolean): CSSProperties =>
@@ -228,7 +225,7 @@ function App() {
   // Banner: a live match takes the slot; otherwise the last result + next poll.
   // ?preview=next forces the no-live view for previewing.
   const forceNext = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('preview') === 'next'
-  const noLive = !liveMatch || forceNext
+  const noLive = !hasLive || forceNext
   const ftMatch = noLive ? past[0] ?? null : null
   const ftCorrectNames = ftMatch ? players.filter((u) => presult(ftMatch, u) === 'correct').map((u) => u.name) : []
   const nextMatch = noLive ? upcoming[0] ?? null : null
@@ -263,16 +260,21 @@ function App() {
           </div>
         </div>
 
-        {/* Banner: live match, else last result + next-up poll */}
-        {liveMatch && liveLabel !== null && !noLive ? (
-          <LiveStands
-            match={liveMatch}
-            players={players}
-            picksByMatch={picksByMatch}
-            teamLabel={teamLabel}
-            teamEmoji={teamEmoji}
-            liveLabel={liveLabel}
-          />
+        {/* Banner: every live match (concurrent fixtures each get a card),
+            else last result + next-up poll. The live label is re-derived per
+            match each render; the 30s tick above keeps them moving. */}
+        {!noLive ? (
+          live.map((m) => (
+            <LiveStands
+              key={m.id}
+              match={m}
+              players={players}
+              picksByMatch={picksByMatch}
+              teamLabel={teamLabel}
+              teamEmoji={teamEmoji}
+              liveLabel={liveClockLabel(m, Date.now())}
+            />
+          ))
         ) : (
           <>
             {ftMatch && (
