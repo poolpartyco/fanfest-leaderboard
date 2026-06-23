@@ -6,7 +6,8 @@ import { admin } from './admin-client'
 import { fetchMatchesByDate } from '../src/lib/highlightly-client'
 import { parseMatchesResponse } from '../src/lib/highlightly-parser'
 import { reconcileMatches } from '../src/lib/reconcile'
-import { isInLiveWindow, shouldPoll } from '../src/lib/poller-decision'
+import { shouldPoll, liveTargetDates, DAILY_CAP } from '../src/lib/poller-decision'
+import type { ParsedMatch } from '../src/lib/types'
 import type { MatchRow } from '../src/lib/types'
 
 const utcDate = (d: Date) => d.toISOString().slice(0, 10) // YYYY-MM-DD (UTC)
@@ -42,17 +43,25 @@ async function main() {
   console.log(`[poll] decision=${decision.poll} reason=${decision.reason} usage=${requestCountToday}/100`)
   if (!decision.poll) return
 
-  // Query the date of the live match if there is one, else today.
-  const liveMatch = matchRows.find((m) => m.state !== 'finished' && isInLiveWindow(m.kickoff, now))
-  const targetDate = liveMatch ? utcDate(new Date(liveMatch.kickoff)) : today
-
-  const json = await fetchMatchesByDate(targetDate, apiKey)
-
-  // Record the spend immediately so a later failure can't under-count.
-  await admin.from('api_usage').upsert({ day: today, request_count: requestCountToday + 1 })
+  // Fetch every UTC date that has a live match. Same-day concurrent matches
+  // dedupe to one call; matches straddling UTC midnight need one call each, so
+  // a delayed late match and an early one both stay fresh. Stay under the cap.
+  const targetDates = liveTargetDates(matchRows, now, today)
+  const parsed: ParsedMatch[] = []
+  let calls = 0
+  for (const date of targetDates) {
+    if (requestCountToday + calls >= DAILY_CAP) {
+      console.log(`[poll] daily cap hit, skipping remaining dates: ${targetDates.slice(calls).join(', ')}`)
+      break
+    }
+    const json = await fetchMatchesByDate(date, apiKey)
+    calls++
+    // Record each spend immediately so a later failure can't under-count.
+    await admin.from('api_usage').upsert({ day: today, request_count: requestCountToday + calls })
+    parsed.push(...parseMatchesResponse(json))
+  }
   await admin.from('poll_state').update({ last_polled_at: now.toISOString() }).eq('id', true)
 
-  const parsed = parseMatchesResponse(json)
   const { updates, unmatched } = reconcileMatches(parsed, matchRows)
 
   for (const u of updates) {
@@ -71,7 +80,7 @@ async function main() {
     if (error) console.error(`✗ update ${u.id} failed:`, error)
   }
 
-  console.log(`[poll] date=${targetDate} parsed=${parsed.length} updated=${updates.length} unmatched=${unmatched.length}`)
+  console.log(`[poll] dates=${targetDates.join(',')} calls=${calls} parsed=${parsed.length} updated=${updates.length} unmatched=${unmatched.length}`)
   if (unmatched.length) {
     console.log('[poll] unmatched fixtures:', unmatched.map((p) => `${p.homeTeamName} vs ${p.awayTeamName}`).join(', '))
   }
