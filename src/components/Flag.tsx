@@ -4,7 +4,7 @@ import { FLAGS, flagCodeForTeam } from '../lib/flags'
 const STAR =
   'polygon(50% 2%,62% 35%,98% 35%,68% 57%,79% 92%,50% 71%,21% 92%,32% 57%,2% 35%,38% 35%)'
 
-type Props = { teamId: string; emoji?: string; size?: number }
+type Props = { teamId: string | null; emoji?: string; size?: number }
 
 const badge = (size: number): CSSProperties => ({
   width: size,
@@ -20,7 +20,7 @@ const badge = (size: number): CSSProperties => ({
 // Circular, CSS-drawn flag. Falls back to the team emoji when no drawn
 // definition exists for the team's flag code.
 export function Flag({ teamId, emoji, size = 30 }: Props) {
-  const code = flagCodeForTeam(teamId)
+  const code = teamId ? flagCodeForTeam(teamId) : undefined
   const f = code ? FLAGS[code] : undefined
 
   if (!f) {

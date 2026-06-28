@@ -1,0 +1,40 @@
+{
+  "matches": [
+    { "id": "M73", "round": "r32", "date": "28/6", "hour": "14:00", "bracketOrder": 1, "homeTeamId": "rsa", "awayTeamId": "can" },
+    { "id": "M74", "round": "r32", "date": "29/6", "hour": "15:30", "bracketOrder": 2, "homeTeamId": "ger", "awayTeamId": "par" },
+    { "id": "M75", "round": "r32", "date": "29/6", "hour": "20:00", "bracketOrder": 3, "homeTeamId": "ned", "awayTeamId": "mar" },
+    { "id": "M76", "round": "r32", "date": "29/6", "hour": "12:00", "bracketOrder": 4, "homeTeamId": "bra", "awayTeamId": "jpn" },
+    { "id": "M77", "round": "r32", "date": "30/6", "hour": "16:00", "bracketOrder": 5, "homeTeamId": "fra", "awayTeamId": "swe" },
+    { "id": "M78", "round": "r32", "date": "30/6", "hour": "12:00", "bracketOrder": 6, "homeTeamId": "civ", "awayTeamId": "nor" },
+    { "id": "M79", "round": "r32", "date": "30/6", "hour": "20:00", "bracketOrder": 7, "homeTeamId": "mex", "awayTeamId": "ecu" },
+    { "id": "M80", "round": "r32", "date": "1/7", "hour": "11:00", "bracketOrder": 8, "homeTeamId": "eng", "awayTeamId": "cod" },
+    { "id": "M81", "round": "r32", "date": "1/7", "hour": "19:00", "bracketOrder": 9, "homeTeamId": "usa", "awayTeamId": "bih" },
+    { "id": "M82", "round": "r32", "date": "1/7", "hour": "15:00", "bracketOrder": 10, "homeTeamId": "bel", "awayTeamId": "sen" },
+    { "id": "M83", "round": "r32", "date": "2/7", "hour": "18:00", "bracketOrder": 11, "homeTeamId": "por", "awayTeamId": "cro" },
+    { "id": "M84", "round": "r32", "date": "2/7", "hour": "14:00", "bracketOrder": 12, "homeTeamId": "esp", "awayTeamId": "aut" },
+    { "id": "M85", "round": "r32", "date": "2/7", "hour": "22:00", "bracketOrder": 13, "homeTeamId": "sui", "awayTeamId": "alg" },
+    { "id": "M86", "round": "r32", "date": "3/7", "hour": "17:00", "bracketOrder": 14, "homeTeamId": "arg", "awayTeamId": "cpv" },
+    { "id": "M87", "round": "r32", "date": "3/7", "hour": "20:30", "bracketOrder": 15, "homeTeamId": "col", "awayTeamId": "gha" },
+    { "id": "M88", "round": "r32", "date": "3/7", "hour": "13:00", "bracketOrder": 16, "homeTeamId": "aus", "awayTeamId": "egy" },
+
+    { "id": "M89", "round": "r16", "date": "4/7", "hour": "16:00", "bracketOrder": 1, "homeSource": { "matchId": "M74", "result": "winner" }, "awaySource": { "matchId": "M77", "result": "winner" } },
+    { "id": "M90", "round": "r16", "date": "4/7", "hour": "12:00", "bracketOrder": 2, "homeSource": { "matchId": "M73", "result": "winner" }, "awaySource": { "matchId": "M75", "result": "winner" } },
+    { "id": "M91", "round": "r16", "date": "5/7", "hour": "15:00", "bracketOrder": 3, "homeSource": { "matchId": "M76", "result": "winner" }, "awaySource": { "matchId": "M78", "result": "winner" } },
+    { "id": "M92", "round": "r16", "date": "5/7", "hour": "19:00", "bracketOrder": 4, "homeSource": { "matchId": "M79", "result": "winner" }, "awaySource": { "matchId": "M80", "result": "winner" } },
+    { "id": "M93", "round": "r16", "date": "6/7", "hour": "14:00", "bracketOrder": 5, "homeSource": { "matchId": "M83", "result": "winner" }, "awaySource": { "matchId": "M84", "result": "winner" } },
+    { "id": "M94", "round": "r16", "date": "6/7", "hour": "19:00", "bracketOrder": 6, "homeSource": { "matchId": "M81", "result": "winner" }, "awaySource": { "matchId": "M82", "result": "winner" } },
+    { "id": "M95", "round": "r16", "date": "7/7", "hour": "11:00", "bracketOrder": 7, "homeSource": { "matchId": "M86", "result": "winner" }, "awaySource": { "matchId": "M88", "result": "winner" } },
+    { "id": "M96", "round": "r16", "date": "7/7", "hour": "15:00", "bracketOrder": 8, "homeSource": { "matchId": "M85", "result": "winner" }, "awaySource": { "matchId": "M87", "result": "winner" } },
+
+    { "id": "M97", "round": "qf", "date": "9/7", "hour": "15:00", "bracketOrder": 1, "homeSource": { "matchId": "M89", "result": "winner" }, "awaySource": { "matchId": "M90", "result": "winner" } },
+    { "id": "M98", "round": "qf", "date": "10/7", "hour": "14:00", "bracketOrder": 2, "homeSource": { "matchId": "M93", "result": "winner" }, "awaySource": { "matchId": "M94", "result": "winner" } },
+    { "id": "M99", "round": "qf", "date": "11/7", "hour": "16:00", "bracketOrder": 3, "homeSource": { "matchId": "M91", "result": "winner" }, "awaySource": { "matchId": "M92", "result": "winner" } },
+    { "id": "M100", "round": "qf", "date": "11/7", "hour": "20:00", "bracketOrder": 4, "homeSource": { "matchId": "M95", "result": "winner" }, "awaySource": { "matchId": "M96", "result": "winner" } },
+
+    { "id": "M101", "round": "sf", "date": "14/7", "hour": "14:00", "bracketOrder": 1, "homeSource": { "matchId": "M97", "result": "winner" }, "awaySource": { "matchId": "M98", "result": "winner" } },
+    { "id": "M102", "round": "sf", "date": "15/7", "hour": "14:00", "bracketOrder": 2, "homeSource": { "matchId": "M99", "result": "winner" }, "awaySource": { "matchId": "M100", "result": "winner" } },
+
+    { "id": "M103", "round": "third", "date": "18/7", "hour": "16:00", "bracketOrder": 1, "homeSource": { "matchId": "M101", "result": "loser" }, "awaySource": { "matchId": "M102", "result": "loser" } },
+    { "id": "M104", "round": "final", "date": "19/7", "hour": "14:00", "bracketOrder": 1, "homeSource": { "matchId": "M101", "result": "winner" }, "awaySource": { "matchId": "M102", "result": "winner" } }
+  ]
+}

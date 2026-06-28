@@ -11,9 +11,13 @@ import { Flag } from './components/Flag'
 import { LiveStands } from './components/LiveStands'
 import { NextUpPoll } from './components/NextUpPoll'
 import { VoteCountdown } from './components/VoteCountdown'
+import { KnockoutBracket } from './components/KnockoutBracket'
+import { RoadToGlory } from './components/RoadToGlory'
+import { hasBothTeams } from './lib/bracketView'
 import type { MatchRow, TeamRow, UserRow } from './lib/types'
 
-type Tab = 'leaderboard' | 'vote' | 'matches' | 'upcoming'
+type Tab = 'leaderboard' | 'vote' | 'matches' | 'upcoming' | 'bracket'
+const TABS: Tab[] = ['leaderboard', 'vote', 'matches', 'upcoming', 'bracket']
 
 const OPT_COLOR: Record<Side, string> = { home: 'var(--accent)', draw: '#9aa7ba', away: 'var(--gold)' }
 
@@ -40,7 +44,7 @@ const ROOT_BG =
 function App() {
   const { data, loading, error, refresh, applyPick } = useLeaderboardData()
   const hash = typeof window !== 'undefined' ? window.location.hash.slice(1).split('/') : []
-  const initialTab = (['leaderboard', 'vote', 'matches', 'upcoming'] as const).find((t) => t === hash[0]) ?? 'leaderboard'
+  const initialTab = TABS.find((t) => t === hash[0]) ?? 'leaderboard'
   const [tab, setTab] = useState<Tab>(initialTab)
   const [sort, setSort] = useState<'recent' | 'oldest'>('recent')
   const [filterPlayer, setFilterPlayer] = useState<string>('Everyone')
@@ -58,12 +62,15 @@ function App() {
   const vm = useMemo(() => {
     if (!data) return null
     const teamLookup = new Map<string, TeamRow>(data.teams.map((t) => [t.id, t]))
-    const teamLabel = (id: string) => (id === 'draw' ? 'Draw' : teamLookup.get(id)?.name ?? id)
-    const teamEmoji = (id: string) => teamLookup.get(id)?.flag
+    const teamLabel = (id: string | null) => (id === 'draw' ? 'Draw' : id == null ? 'TBD' : teamLookup.get(id)?.name ?? id)
+    const teamEmoji = (id: string | null) => (id == null ? undefined : teamLookup.get(id)?.flag)
     const standings = buildLeaderboard(data.users, data.matches, data.picks)
-    const { live, past, upcoming } = partitionMatches(data.matches)
+    const { live, past, upcoming: allUpcoming } = partitionMatches(data.matches)
+    // Hide unresolved knockout slots (no teams yet) from Vote/Upcoming/next-up.
+    const upcoming = allUpcoming.filter(hasBothTeams)
+    const knockout = data.matches.filter((m) => m.stage === 'knockout')
     const picksByMatch = buildPicksByMatch(data.picks)
-    return { teamLabel, teamEmoji, standings, live, past, upcoming, picksByMatch, players: data.users }
+    return { teamLabel, teamEmoji, standings, live, past, upcoming, knockout, picksByMatch, players: data.users }
   }, [data])
 
   const ready = !!vm
@@ -101,7 +108,7 @@ function App() {
     )
   }
 
-  const { teamLabel, teamEmoji, standings, live, past, upcoming, picksByMatch, players } = vm
+  const { teamLabel, teamEmoji, standings, live, past, upcoming, knockout, picksByMatch, players } = vm
   const leader = standings[0]
   const hasLive = live.length > 0
 
@@ -205,6 +212,7 @@ function App() {
   // Only re-sync from the server if the write fails (e.g. locked at kickoff).
   const castVote = (m: MatchRow, u: UserRow, side: Side) => {
     const teamId = sideToTeamId(m, side)
+    if (teamId === null) return // unresolved slot has no team to back yet
     applyPick(m.id, u.id, teamId)
     void submitPick(m.id, u.id, teamId).then(({ error }) => {
       if (error) refresh()
@@ -303,7 +311,7 @@ function App() {
 
         {/* Tabs */}
         <div className="ff-tabs">
-          {(['leaderboard', 'vote', 'matches', 'upcoming'] as Tab[]).map((t) => (
+          {TABS.map((t) => (
             <button key={t} className={seg(tab === t)} onClick={() => setTab(t)}>
               {t[0].toUpperCase() + t.slice(1)}
             </button>
@@ -313,6 +321,16 @@ function App() {
         {/* Leaderboard */}
         {tab === 'leaderboard' && (
           <div>
+            {knockout.length > 0 && (
+              <RoadToGlory
+                matches={knockout}
+                players={players}
+                picksByMatch={picksByMatch}
+                teamLabel={teamLabel}
+                teamEmoji={teamEmoji}
+                onOpenFull={() => setTab('bracket')}
+              />
+            )}
             <div className="ff-podium">{renderPodium()}</div>
             <div className="ff-rankcard">
               <div className="ff-rankhead">
@@ -476,6 +494,22 @@ function App() {
               </div>
             ))}
             {upcomingGroups.length === 0 && <div className="ff-up-fix">No upcoming fixtures.</div>}
+          </div>
+        )}
+
+        {/* Bracket */}
+        {tab === 'bracket' && (
+          <div className="ff-kb">
+            <div className="ff-kb-head-band">
+              <div className="ff-kb-head-kicker">World Cup 2026 · Knockout stage</div>
+              <h2 className="ff-kb-head-title">Knockout bracket</h2>
+              <div className="ff-kb-legend">
+                <span className="ff-kb-leg"><i style={{ background: 'var(--bad)' }} />Live now</span>
+                <span className="ff-kb-leg"><i style={{ background: 'var(--accent)' }} />Winner advances</span>
+                <span className="ff-kb-leg"><i style={{ background: 'var(--faint)' }} />Awaiting result</span>
+              </div>
+            </div>
+            <KnockoutBracket matches={knockout} teamLabel={teamLabel} teamEmoji={teamEmoji} />
           </div>
         )}
 

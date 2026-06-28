@@ -97,7 +97,7 @@ export function reconcileMatches(
     if (!target && homeLocal && awayLocal) {
       const pair = new Set([homeLocal, awayLocal])
       const candidates = ourMatches.filter(
-        (m) => m.highlightly_match_id === null && new Set([m.home_team_id, m.away_team_id]).size === 2 &&
+        (m) => m.highlightly_match_id === null && m.home_team_id != null && m.away_team_id != null &&
           m.home_team_id !== m.away_team_id && pair.has(m.home_team_id) && pair.has(m.away_team_id),
       )
       if (candidates.length > 0) {
