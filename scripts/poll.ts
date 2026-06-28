@@ -6,6 +6,7 @@ import { admin } from './admin-client'
 import { fetchMatchesByDate } from '../src/lib/highlightly-client'
 import { parseMatchesResponse } from '../src/lib/highlightly-parser'
 import { reconcileMatches } from '../src/lib/reconcile'
+import { resolveBracket } from '../src/lib/bracket'
 import { shouldPoll, liveTargetDates, DAILY_CAP } from '../src/lib/poller-decision'
 import type { ParsedMatch } from '../src/lib/types'
 import type { MatchRow } from '../src/lib/types'
@@ -21,7 +22,10 @@ async function main() {
 
   const { data: matches, error: mErr } = await admin
     .from('matches')
-    .select('id,kickoff,home_team_id,away_team_id,home_score,away_score,state,highlightly_match_id')
+    .select(
+      'id,kickoff,home_team_id,away_team_id,home_score,away_score,state,highlightly_match_id,' +
+        'stage,round,home_source_match_id,away_source_match_id,home_source_result,away_source_result,advanced_team_id',
+    )
   if (mErr) throw mErr
   const matchRows = (matches ?? []) as MatchRow[]
 
@@ -79,6 +83,24 @@ async function main() {
       .eq('id', u.id)
     if (error) console.error(`✗ update ${u.id} failed:`, error)
   }
+
+  // Propagate knockout results: merge this run's score/state changes into our
+  // snapshot, then fill any newly-decided bracket slots and record who advanced.
+  const updatedById = new Map(updates.map((u) => [u.id, u]))
+  const merged: MatchRow[] = matchRows.map((m) => {
+    const u = updatedById.get(m.id)
+    return u ? { ...m, home_score: u.home_score, away_score: u.away_score, state: u.state } : m
+  })
+  const resolutions = resolveBracket(merged)
+  for (const r of resolutions) {
+    const patch: Record<string, unknown> = {}
+    if (r.home_team_id !== undefined) patch.home_team_id = r.home_team_id
+    if (r.away_team_id !== undefined) patch.away_team_id = r.away_team_id
+    if (r.advanced_team_id !== undefined) patch.advanced_team_id = r.advanced_team_id
+    const { error } = await admin.from('matches').update(patch).eq('id', r.id)
+    if (error) console.error(`✗ resolve ${r.id} failed:`, error)
+  }
+  if (resolutions.length) console.log(`[poll] bracket resolutions: ${resolutions.map((r) => r.id).join(',')}`)
 
   console.log(`[poll] dates=${targetDates.join(',')} calls=${calls} parsed=${parsed.length} updated=${updates.length} unmatched=${unmatched.length}`)
   if (unmatched.length) {

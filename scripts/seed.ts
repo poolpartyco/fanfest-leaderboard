@@ -2,13 +2,18 @@
 // authoritative Highlightly team ids. Idempotent via upserts.
 import { admin } from './admin-client'
 import legacyData from '../src/data/leaderboard.json'
-import { legacyToRows } from '../src/lib/migrate-legacy'
+import knockoutData from '../src/data/knockout.json'
+import { legacyToRows, knockoutToRows } from '../src/lib/migrate-legacy'
 import { HIGHLIGHTLY_TEAM_ID_BY_LOCAL_ID } from '../src/lib/reconcile'
-import type { LegacyData } from '../src/lib/types'
+import type { KnockoutData, LegacyData } from '../src/lib/types'
 
 async function main() {
   const now = new Date()
-  const { users, teams, matches, picks } = legacyToRows(legacyData as unknown as LegacyData, { now })
+  const { users, teams, matches: groupMatches, picks } = legacyToRows(legacyData as unknown as LegacyData, { now })
+  // Knockout fixtures: group rows first, then the bracket ordered so each
+  // feeder reference (FK to matches.id) points at an already-listed match.
+  const knockoutMatches = knockoutToRows(knockoutData as unknown as KnockoutData, { now })
+  const matches = [...groupMatches, ...knockoutMatches]
 
   const teamsWithHl = teams.map((t) => ({
     ...t,

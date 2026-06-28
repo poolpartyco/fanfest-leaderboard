@@ -9,8 +9,8 @@ type Props = {
   match: MatchRow
   players: UserRow[]
   picksByMatch: Record<string, Record<string, string>>
-  teamLabel: (id: string) => string
-  teamEmoji: (id: string) => string | undefined
+  teamLabel: (id: string | null) => string
+  teamEmoji: (id: string | null) => string | undefined
   onVote: () => void
 }
 

@@ -25,7 +25,9 @@ export function pickResult(pick: Side | null, winner: Side | null): PickOutcome 
 }
 
 // Convert a chosen side back to the team id stored in `picks.picked_team_id`.
-export function sideToTeamId(match: MatchRow, side: Side): string {
+// home/away can be null for an unresolved knockout slot, but only resolved
+// matches are votable, so callers guard against null in practice.
+export function sideToTeamId(match: MatchRow, side: Side): string | null {
   if (side === 'home') return match.home_team_id
   if (side === 'away') return match.away_team_id
   return 'draw'

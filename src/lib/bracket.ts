@@ -1,0 +1,86 @@
+// Bracket progression: derive who advanced from each finished knockout match
+// and propagate winners (and the semi-final losers) into the next round's
+// slots. Pure functions over MatchRow[], so the poller and tests share them.
+import type { MatchRow, SourceResult } from './types'
+
+/**
+ * The team that advanced from a finished knockout match, by the 90-minute
+ * score. Returns null for a draw — that match went to penalties, whose winner
+ * the score doesn't capture, so it must be set manually via advanced_team_id.
+ */
+export function advancedTeamId(m: MatchRow): string | null {
+  if (m.state !== 'finished') return null
+  if (m.home_score == null || m.away_score == null) return null
+  if (m.home_team_id == null || m.away_team_id == null) return null
+  if (m.home_score > m.away_score) return m.home_team_id
+  if (m.away_score > m.home_score) return m.away_team_id
+  return null
+}
+
+// Effective advance: an explicit advanced_team_id (e.g. a penalty winner set by
+// hand) wins; otherwise derive it from the score.
+function effectiveAdvanced(m: MatchRow): string | null {
+  return m.advanced_team_id ?? advancedTeamId(m)
+}
+
+// The team that did NOT advance, for the third-place feed.
+function loserTeamId(m: MatchRow): string | null {
+  const adv = effectiveAdvanced(m)
+  if (adv == null || m.home_team_id == null || m.away_team_id == null) return null
+  return adv === m.home_team_id ? m.away_team_id : m.home_team_id
+}
+
+function fromSource(src: MatchRow | undefined, result: SourceResult | null | undefined): string | null {
+  if (!src || !result) return null
+  return result === 'winner' ? effectiveAdvanced(src) : loserTeamId(src)
+}
+
+export type BracketResolution = {
+  id: string
+  home_team_id?: string
+  away_team_id?: string
+  advanced_team_id?: string
+}
+
+/**
+ * Given the full set of matches, return the updates needed so unresolved
+ * knockout slots take their feeder's winner/loser and each decided knockout
+ * match records who advanced. Only includes rows that actually change.
+ */
+export function resolveBracket(matches: MatchRow[]): BracketResolution[] {
+  const byId = new Map(matches.map((m) => [m.id, m]))
+  const out: BracketResolution[] = []
+
+  for (const m of matches) {
+    if (m.stage !== 'knockout') continue
+    const res: BracketResolution = { id: m.id }
+    let changed = false
+
+    if (m.home_team_id == null && m.home_source_match_id) {
+      const t = fromSource(byId.get(m.home_source_match_id), m.home_source_result)
+      if (t) {
+        res.home_team_id = t
+        changed = true
+      }
+    }
+    if (m.away_team_id == null && m.away_source_match_id) {
+      const t = fromSource(byId.get(m.away_source_match_id), m.away_source_result)
+      if (t) {
+        res.away_team_id = t
+        changed = true
+      }
+    }
+    // Record the team that advanced once the match is decided on the score.
+    if (m.advanced_team_id == null) {
+      const adv = advancedTeamId(m)
+      if (adv) {
+        res.advanced_team_id = adv
+        changed = true
+      }
+    }
+
+    if (changed) out.push(res)
+  }
+
+  return out
+}

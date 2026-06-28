@@ -51,6 +51,7 @@ export function parseMatchesResponse(json: unknown): ParsedMatch[] {
     const rawClock = item.state?.clock
     const clock = typeof rawClock === 'number' ? rawClock : null
     const description = typeof item.state?.description === 'string' ? item.state.description : null
+    const round = typeof item.round === 'string' ? item.round : null
 
     result.push({
       highlightlyMatchId: item.id,
@@ -64,6 +65,7 @@ export function parseMatchesResponse(json: unknown): ParsedMatch[] {
       state: mapState(item.state?.description),
       clock,
       statusDescription: description,
+      round,
     })
   }
 

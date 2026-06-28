@@ -2,6 +2,7 @@
 // Kickoff times are interpreted in America/Bogota (fixed UTC-5, no DST).
 
 import type {
+  KnockoutData,
   LegacyData,
   MatchRow,
   MatchState,
@@ -62,6 +63,7 @@ export function legacyToRows(
       away_score: finished ? m.awayScore : null,
       state,
       highlightly_match_id: null,
+      stage: 'group',
     })
 
     for (const [userId, teamId] of Object.entries(m.picks)) {
@@ -70,4 +72,37 @@ export function legacyToRows(
   }
 
   return { users, teams, matches, picks }
+}
+
+// Transform the bundled knockout fixtures into match rows. Round-of-32 rows
+// carry real teams; later rounds start with null team slots plus the feeder
+// graph (which match's winner/loser fills each slot). Scores stay null — the
+// poller fills them and `resolveBracket` propagates winners forward.
+export function knockoutToRows(
+  data: KnockoutData,
+  opts: { year?: number; now: Date },
+): MatchRow[] {
+  const year = opts.year ?? 2026
+
+  return data.matches.map((m) => {
+    const kickoff = bogotaToUtcIso(m.date, m.hour, year)
+    return {
+      id: m.id,
+      kickoff,
+      home_team_id: m.homeTeamId ?? null,
+      away_team_id: m.awayTeamId ?? null,
+      home_score: null,
+      away_score: null,
+      state: stateForKickoff(kickoff, opts.now),
+      highlightly_match_id: null,
+      stage: 'knockout',
+      round: m.round,
+      bracket_order: m.bracketOrder,
+      home_source_match_id: m.homeSource?.matchId ?? null,
+      away_source_match_id: m.awaySource?.matchId ?? null,
+      home_source_result: m.homeSource?.result ?? null,
+      away_source_result: m.awaySource?.result ?? null,
+      advanced_team_id: null,
+    }
+  })
 }
