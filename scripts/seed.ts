@@ -21,11 +21,19 @@ async function main() {
   }))
 
   // Order matters for foreign keys: users + teams -> matches -> picks.
+  //
+  // IMPORTANT: matches and picks are INSERT-ONLY (ignoreDuplicates). The live DB
+  // is the source of truth for match results (filled by the poller) and for
+  // player votes (written by the app) — the bundled leaderboard.json is only an
+  // initial-setup snapshot and its scores/picks go stale. A plain upsert here
+  // would overwrite real results and votes with stale file values on every
+  // re-run. So we only insert rows that don't exist yet; existing rows are left
+  // untouched. (To intentionally change an existing fixture, do it explicitly.)
   const steps: Array<[string, () => PromiseLike<{ error: unknown }>]> = [
     ['users', () => admin.from('users').upsert(users)],
     ['teams', () => admin.from('teams').upsert(teamsWithHl)],
-    ['matches', () => admin.from('matches').upsert(matches)],
-    ['picks', () => admin.from('picks').upsert(picks)],
+    ['matches', () => admin.from('matches').upsert(matches, { onConflict: 'id', ignoreDuplicates: true })],
+    ['picks', () => admin.from('picks').upsert(picks, { onConflict: 'match_id,user_id', ignoreDuplicates: true })],
   ]
 
   for (const [name, run] of steps) {
