@@ -4,9 +4,13 @@
 import type { MatchRow, SourceResult } from './types'
 
 /**
- * The team that advanced from a finished knockout match, by the 90-minute
- * score. Returns null for a draw — that match went to penalties, whose winner
- * the score doesn't capture, so it must be set manually via advanced_team_id.
+ * The team that advanced from a finished knockout match. The 120-minute score
+ * decides it; if that's level the match went to penalties, so the shootout
+ * (penalty_home/away) breaks the tie. Returns null only when still level with
+ * no shootout recorded — then it must be set manually via advanced_team_id.
+ *
+ * Note this is bracket progression only: pick scoring uses the drawn score, so
+ * a penalty result here never turns a level game into a "win" for points.
  */
 export function advancedTeamId(m: MatchRow): string | null {
   if (m.state !== 'finished') return null
@@ -14,6 +18,11 @@ export function advancedTeamId(m: MatchRow): string | null {
   if (m.home_team_id == null || m.away_team_id == null) return null
   if (m.home_score > m.away_score) return m.home_team_id
   if (m.away_score > m.home_score) return m.away_team_id
+  // Level after 120' → decided on penalties.
+  if (m.penalty_home != null && m.penalty_away != null) {
+    if (m.penalty_home > m.penalty_away) return m.home_team_id
+    if (m.penalty_away > m.penalty_home) return m.away_team_id
+  }
   return null
 }
 

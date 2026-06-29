@@ -16,9 +16,21 @@ export const ROUND_LABEL: Record<KnockoutRound, string> = {
 export const ROUND_FLOW: KnockoutRound[] = ['r32', 'r16', 'qf', 'sf', 'final']
 
 // Team that advanced from a knockout match, for winner highlighting: an explicit
-// advanced_team_id (penalty winner) wins, else the 90-minute score decides.
+// advanced_team_id (penalty winner) wins, else the score (incl. penalty
+// tiebreak) decides.
 export function bracketWinnerTeamId(m: MatchRow): string | null {
   return m.advanced_team_id ?? advancedTeamId(m)
+}
+
+// The shootout result for a knockout match decided on penalties, or null when
+// the match wasn't (no penalty score recorded). Used to caption a drawn
+// knockout match — the match itself scores as a draw, this only says who went
+// through.
+export function penaltyResult(
+  m: MatchRow,
+): { home: number; away: number; winnerId: string | null } | null {
+  if (m.penalty_home == null || m.penalty_away == null) return null
+  return { home: m.penalty_home, away: m.penalty_away, winnerId: bracketWinnerTeamId(m) }
 }
 
 // Label for an unresolved slot: the winner of a feeder reads "W74", a

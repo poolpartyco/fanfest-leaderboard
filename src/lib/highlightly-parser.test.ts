@@ -46,16 +46,26 @@ describe('mapState', () => {
     expect(mapState('Second half')).toBe('live')
   })
 
-  it('maps "First half", "Halftime", "Extra time", "Penalties" to live', () => {
+  it('keeps in-progress "First half", "Halftime", "Extra time", "Penalties" as live', () => {
     expect(mapState('First half')).toBe('live')
     expect(mapState('Halftime')).toBe('live')
     expect(mapState('Extra time')).toBe('live')
+    // A shootout in progress is still live — only the "after …" terminal finishes it.
     expect(mapState('Penalties')).toBe('live')
+  })
+
+  it('treats extra-time / penalty finishes as finished', () => {
+    expect(mapState('After extra time')).toBe('finished')
+    expect(mapState('After penalties')).toBe('finished')
+    expect(mapState('AET')).toBe('finished')
+    expect(mapState('Awarded')).toBe('finished')
+    expect(mapState('Walkover')).toBe('finished')
   })
 
   it('is case-insensitive and trims whitespace', () => {
     expect(mapState('  not STARTED ')).toBe('scheduled')
     expect(mapState(' FINISHED ')).toBe('finished')
+    expect(mapState(' after PENALTIES ')).toBe('finished')
   })
 })
 
@@ -131,6 +141,37 @@ describe('parseMatchesResponse', () => {
       awayScore: 1,
       state: 'finished',
     })
+  })
+
+  it('captures the penalty shootout from a finished, drawn knockout match', () => {
+    const json = {
+      data: [
+        {
+          id: 555,
+          round: 'Round of 32',
+          date: '2026-06-29T19:00:00.000Z',
+          homeTeam: { id: 22059, name: 'Germany' },
+          awayTeam: { id: 2026164, name: 'Paraguay' },
+          // 1-1 after 120', Germany through 4-3 on penalties.
+          state: { clock: 120, description: 'After penalties', score: { current: '1 - 1', penalties: '4 - 3' } },
+        },
+      ],
+    }
+    const [match] = parseMatchesResponse(json)
+    expect(match).toMatchObject({
+      homeScore: 1,
+      awayScore: 1,
+      penaltyHome: 4,
+      penaltyAway: 3,
+      state: 'finished',
+    })
+  })
+
+  it('leaves penalties null when the match has no shootout', () => {
+    const result = parseMatchesResponse(fixture)
+    const spain = result.find((m) => m.highlightlyMatchId === 1267463164)!
+    expect(spain.penaltyHome).toBeNull()
+    expect(spain.penaltyAway).toBeNull()
   })
 
   it('returns [] for empty data array', () => {

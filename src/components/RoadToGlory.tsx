@@ -48,6 +48,7 @@ export function RoadToGlory({ matches, players, picksByMatch, teamLabel, teamEmo
     const winnerId = bracketWinnerTeamId(m)
     const lose = m.state === 'finished' && winnerId != null && winnerId !== id
     const score = where === 'home' ? m.home_score : m.away_score
+    const penalty = where === 'home' ? m.penalty_home : m.penalty_away
     if (id == null) {
       const ph = where === 'home'
         ? slotPlaceholder(m.home_source_match_id, m.home_source_result)
@@ -62,7 +63,9 @@ export function RoadToGlory({ matches, players, picksByMatch, teamLabel, teamEmo
       <div className={`ff-rg-team${lose ? ' lose' : ''}`}>
         <Flag teamId={id} emoji={teamEmoji(id)} size={24} />
         <span className="ff-rg-nm">{teamLabel(id)}</span>
-        {score != null && <span className="ff-rg-sc">{score}</span>}
+        {score != null && (
+          <span className="ff-rg-sc">{score}{penalty != null && <span className="ff-kb-pens">({penalty})</span>}</span>
+        )}
       </div>
     )
   }

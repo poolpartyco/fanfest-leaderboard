@@ -21,13 +21,31 @@ export function parseScore(current: string | null | undefined): {
 
 /**
  * Map a Highlightly state description to our MatchState.
- * "Not started" -> scheduled, "Finished" -> finished, everything else -> live.
+ * "Not started" -> scheduled; terminal states ("Finished", "After extra time",
+ * "After penalties", AET, walkover, abandoned/cancelled) -> finished; anything
+ * else (including in-progress "Extra time" and "Penalties") -> live.
  * Case-insensitive and whitespace-tolerant.
+ *
+ * Knockout matches can finish after extra time or a shootout, so we can't rely
+ * on the exact word "Finished": a match left as 'live' would never score. We
+ * only treat clearly post-match descriptions as finished — note "Extra time"
+ * and "Penalties" (shootout in progress) deliberately stay 'live' until the
+ * "after …" terminal lands.
  */
 export function mapState(description: string): MatchState {
   const normalized = (description ?? '').trim().toLowerCase()
-  if (normalized === 'not started') return 'scheduled'
-  if (normalized === 'finished') return 'finished'
+  if (normalized === 'not started' || normalized === 'tbd') return 'scheduled'
+  if (
+    normalized === 'finished' ||
+    normalized.startsWith('after ') || // "After extra time" / "After penalties"
+    normalized === 'aet' ||
+    normalized.includes('awarded') ||
+    normalized.includes('walkover') ||
+    normalized.includes('abandoned') ||
+    normalized.includes('cancel')
+  ) {
+    return 'finished'
+  }
   return 'live'
 }
 
@@ -48,6 +66,10 @@ export function parseMatchesResponse(json: unknown): ParsedMatch[] {
     if (item.id == null) continue
 
     const score = parseScore(item.state?.score?.current)
+    // The shootout result lives in a separate `penalties` field (e.g. "4 - 3"),
+    // null until a drawn knockout match goes to penalties. `current` stays the
+    // 120' on-pitch score, so it never folds in shootout goals.
+    const penalties = parseScore(item.state?.score?.penalties)
     const rawClock = item.state?.clock
     const clock = typeof rawClock === 'number' ? rawClock : null
     const description = typeof item.state?.description === 'string' ? item.state.description : null
@@ -62,6 +84,8 @@ export function parseMatchesResponse(json: unknown): ParsedMatch[] {
       awayTeamName: item.awayTeam?.name,
       homeScore: score.home,
       awayScore: score.away,
+      penaltyHome: penalties.home,
+      penaltyAway: penalties.away,
       state: mapState(item.state?.description),
       clock,
       statusDescription: description,

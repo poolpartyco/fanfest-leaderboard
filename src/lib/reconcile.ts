@@ -68,6 +68,8 @@ export type MatchUpdate = {
   highlightly_match_id: number
   home_score: number | null
   away_score: number | null
+  penalty_home: number | null
+  penalty_away: number | null
   state: MatchState
   status_clock: number | null
   status_description: string | null
@@ -113,14 +115,16 @@ export function reconcileMatches(
       continue
     }
 
-    // Align scores to OUR home/away orientation. Clock/status are
-    // orientation-independent, so they pass straight through.
+    // Align scores to OUR home/away orientation. Penalties flip the same way;
+    // clock/status are orientation-independent, so they pass straight through.
     const sameOrientation = target.home_team_id === homeLocal
     updates.push({
       id: target.id,
       highlightly_match_id: p.highlightlyMatchId,
       home_score: sameOrientation ? p.homeScore : p.awayScore,
       away_score: sameOrientation ? p.awayScore : p.homeScore,
+      penalty_home: sameOrientation ? p.penaltyHome : p.penaltyAway,
+      penalty_away: sameOrientation ? p.penaltyAway : p.penaltyHome,
       state: p.state,
       status_clock: p.clock ?? null,
       status_description: p.statusDescription ?? null,

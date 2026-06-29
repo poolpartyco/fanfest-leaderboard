@@ -46,6 +46,8 @@ const parsed = (over: Partial<ParsedMatch>): ParsedMatch => ({
   awayTeamName: 'Egypt',
   homeScore: 0,
   awayScore: 1,
+  penaltyHome: null,
+  penaltyAway: null,
   state: 'live',
   ...over,
 })
@@ -56,7 +58,7 @@ describe('reconcileMatches', () => {
     const { updates, unmatched } = reconcileMatches([parsed({})], our)
     expect(unmatched).toHaveLength(0)
     expect(updates).toEqual([
-      { id: 'match-12', highlightly_match_id: 1267460611, home_score: 0, away_score: 1, state: 'live', status_clock: null, status_description: null },
+      { id: 'match-12', highlightly_match_id: 1267460611, home_score: 0, away_score: 1, penalty_home: null, penalty_away: null, state: 'live', status_clock: null, status_description: null },
     ])
   })
 
@@ -78,6 +80,14 @@ describe('reconcileMatches', () => {
     const { updates } = reconcileMatches([parsed({})], our)
     // API: Belgium(home)=0, Egypt(away)=1 -> our home is Egypt so home_score must be 1
     expect(updates[0]).toMatchObject({ id: 'match-12', home_score: 1, away_score: 0 })
+  })
+
+  it('flips the penalty shootout to our orientation alongside the score', () => {
+    // our match has Egypt at home; API reports Belgium(home) 1-1 Egypt, Belgium through 5-4 on pens
+    const our = [match({ id: 'match-12', home_team_id: 'egy', away_team_id: 'bel' })]
+    const { updates } = reconcileMatches([parsed({ homeScore: 1, awayScore: 1, penaltyHome: 5, penaltyAway: 4 })], our)
+    // our home is Egypt (API away), so home_penalty must be Egypt's 4, away Belgium's 5
+    expect(updates[0]).toMatchObject({ home_score: 1, away_score: 1, penalty_home: 4, penalty_away: 5 })
   })
 
   it('reports unmatched when no local fixture has the team pair', () => {
