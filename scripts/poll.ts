@@ -13,6 +13,18 @@ import type { MatchRow } from '../src/lib/types'
 
 const utcDate = (d: Date) => d.toISOString().slice(0, 10) // YYYY-MM-DD (UTC)
 
+// Watchdog: a single cron run does one HTTP fetch and a handful of DB writes —
+// it should finish in seconds. The Highlightly/Supabase fetches have no timeout
+// of their own, so if one ever stalls the run would hang forever. Under the
+// poller's `restartPolicyType: NEVER` + 7-minute cron, hung runs pile up on top
+// of each other. Force-exit if a run ever runs long. `.unref()` so this timer
+// never keeps the process alive on its own.
+const WATCHDOG_MS = 90_000
+setTimeout(() => {
+  console.error(`[poll] watchdog: run exceeded ${WATCHDOG_MS}ms, forcing exit`)
+  process.exit(1)
+}, WATCHDOG_MS).unref()
+
 async function main() {
   const apiKey = process.env.HIGHLIGHTLY_API_KEY
   if (!apiKey) throw new Error('Missing HIGHLIGHTLY_API_KEY')
@@ -112,7 +124,14 @@ async function main() {
   }
 }
 
-main().catch((err) => {
-  console.error(err)
-  process.exit(1)
-})
+// This is a one-shot cron job, not a server. Exit explicitly when the work is
+// done: the Supabase client and undici's keep-alive socket pool hold open
+// handles that otherwise keep the event loop alive, leaving the container
+// "Running…" long after the poll finished — and the next scheduled run starts
+// on top of it (restartPolicyType: NEVER doesn't relaunch, but cron still ticks).
+main()
+  .then(() => process.exit(0))
+  .catch((err) => {
+    console.error(err)
+    process.exit(1)
+  })
