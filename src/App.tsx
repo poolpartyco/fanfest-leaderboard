@@ -11,6 +11,7 @@ import { Flag } from './components/Flag'
 import { LiveStands } from './components/LiveStands'
 import { NextUpPoll } from './components/NextUpPoll'
 import { VoteCountdown } from './components/VoteCountdown'
+import { VoteModal } from './components/VoteModal'
 import { KnockoutBracket } from './components/KnockoutBracket'
 import { RadialBracket } from './components/RadialBracket'
 import { RoadToGlory } from './components/RoadToGlory'
@@ -21,8 +22,6 @@ import type { MatchRow, TeamRow, UserRow } from './lib/types'
 
 type Tab = 'leaderboard' | 'vote' | 'matches' | 'upcoming' | 'bracket'
 const TABS: Tab[] = ['leaderboard', 'vote', 'matches', 'upcoming', 'bracket']
-
-const OPT_COLOR: Record<Side, string> = { home: 'var(--accent)', draw: '#9aa7ba', away: 'var(--gold)' }
 
 function rankRing(rank: number) {
   if (rank === 1) return { ring: 'linear-gradient(135deg,#f8dd86,#c8932f)', num: '#3a2a06', glow: '0 0 24px rgba(245,196,81,.35)' }
@@ -67,6 +66,8 @@ function App() {
   const [filterPlayer, setFilterPlayer] = useState<string>('Everyone')
   const [filterResult, setFilterResult] = useState<'all' | 'correct' | 'wrong'>('all')
   const [shown, setShown] = useState<Record<string, number>>({})
+  // Index into voteMatches the vote modal is open at; null = closed.
+  const [voteAt, setVoteAt] = useState<number | null>(null)
   const [, setNowTick] = useState(0)
   const rafRef = useRef<number>(0)
 
@@ -149,8 +150,6 @@ function App() {
   const hasLive = live.length > 0
 
   const dotStyle = (name: string, i: number): CSSProperties => ({ background: playerColor(name, i) })
-  const avatarStyle = (name: string, i: number, neg: boolean): CSSProperties =>
-    ({ background: playerColor(name, i), ...(neg ? { marginLeft: -7 } : {}) })
 
   // Jump to the Matches tab filtered to a player's correct picks.
   const showPlayerHits = (name: string) => {
@@ -244,7 +243,11 @@ function App() {
   // Counts/locks come from lock-status (who voted, not what) so they stay correct
   // once others' scheduled picks are hidden by RLS.
   const votedCount = (m: MatchRow) => lockedByMatch[m.id]?.length ?? 0
-  const hasLocked = (m: MatchRow, u: UserRow) => (lockedByMatch[m.id] ?? []).includes(u.id)
+  const myVoteSide = (m: MatchRow) => pickSide(m, picksByMatch[m.id]?.[me.id])
+  // Where "Make your picks" should open: the first match you haven't called yet.
+  const firstUnpicked = voteMatches.findIndex((m) => myVoteSide(m) === null)
+  const firstUnpickedVote = firstUnpicked === -1 ? 0 : firstUnpicked
+  const allVotesIn = voteMatches.length > 0 && firstUnpicked === -1
 
   // You can only cast your OWN pick. Optimistic, then persist; RLS enforces the
   // identity + before-kickoff window server-side.
@@ -358,7 +361,11 @@ function App() {
                 lockedUserIds={lockedByMatch[nextMatch.id] ?? []}
                 teamLabel={teamLabel}
                 teamEmoji={teamEmoji}
-                onVote={() => setTab('vote')}
+                onVote={() => {
+                  const i = voteMatches.findIndex((m) => m.id === nextMatch.id)
+                  if (i >= 0) setVoteAt(i)
+                  else setTab('vote')
+                }}
               />
             )}
           </>
@@ -398,78 +405,50 @@ function App() {
         )}
 
         {/* Vote — you cast only your own pick; everyone's picks stay sealed
-            until kickoff so nobody can be influenced. */}
+            until kickoff so nobody can be influenced. Picking happens in the
+            VoteModal (versus-split duel); this tab is the launcher. */}
         {tab === 'vote' && (
           <div>
             <div className="ff-vote-intro">Lock your pick before kickoff. <strong>3 points</strong> for a correct call. Everyone's picks stay sealed until the match starts.</div>
-            <div className="ff-vote-list">
-              {voteMatches.length === 0 && <div className="ff-poll">No upcoming matches to vote on.</div>}
-              {voteMatches.map((m) => {
-                const total = votedCount(m)
-                const done = total === players.length
-                const myCurrent = pickSide(m, picksByMatch[m.id]?.[me.id])
-                const keys: [Side, string][] = [['home', teamLabel(m.home_team_id)], ['draw', 'Draw'], ['away', teamLabel(m.away_team_id)]]
-                const myLabel = (s: Side | null) => s === null ? '—' : s === 'draw' ? 'Draw' : teamLabel(s === 'home' ? m.home_team_id : m.away_team_id)
-                return (
-                  <div key={m.id} className="ff-poll">
-                    <div className="ff-poll-head">
-                      <span className="ff-poll-date">{formatKickoffBogota(m.kickoff).day} · {formatKickoffBogota(m.kickoff).time}</span>
-                      <VoteCountdown kickoff={m.kickoff} />
-                      <span className="ff-voted" style={{ background: done ? 'rgba(94,224,160,.14)' : 'var(--panel2)', border: `1px solid ${done ? 'rgba(94,224,160,.4)' : 'var(--line)'}`, color: done ? 'var(--good)' : 'var(--muted)' }}>{total}/{players.length} locked in</span>
-                    </div>
-                    <div className="ff-poll-teams">
-                      <div className="ff-poll-team"><Flag teamId={m.home_team_id} emoji={teamEmoji(m.home_team_id)} size={26} /><span className="ff-poll-tname">{teamLabel(m.home_team_id)}</span></div>
-                      <span className="ff-vs">vs</span>
-                      <div className="ff-poll-team away"><span className="ff-poll-tname">{teamLabel(m.away_team_id)}</span><Flag teamId={m.away_team_id} emoji={teamEmoji(m.away_team_id)} size={26} /></div>
-                    </div>
-
-                    {/* Your own pick — the only one you can set */}
-                    <div className="ff-voter" style={{ marginTop: 4 }}>
-                      <div className="ff-voter-id">
-                        <span className="ff-bc-ring" style={{ '--ring': playerColor(me.name, players.indexOf(me)) } as CSSProperties}>
-                          {avatarFor(me.name)
-                            ? <img className="ff-bc-av" src={avatarFor(me.name)} width={30} height={30} alt={me.name} />
-                            : <span className="ff-bc-av ff-bc-av--init" style={{ width: 30, height: 30, background: playerColor(me.name, players.indexOf(me)) }}>{me.name[0]}</span>}
-                        </span>
-                        <span className="ff-voter-name">Your pick</span>
-                      </div>
-                      <div className="ff-voter-opts">
-                        {keys.map(([side, label]) => {
-                          const active = myCurrent === side
-                          return (
-                            <button key={side} className="ff-voteseg" style={active ? { borderColor: OPT_COLOR[side], background: OPT_COLOR[side], color: '#0a0f1c' } : undefined} onClick={() => castVote(m, side)}>{label}</button>
-                          )
-                        })}
-                      </div>
-                    </div>
-
-                    {/* Everyone else — locked or waiting, never their actual pick */}
-                    <div className="ff-poll-voters" style={{ marginTop: 10 }}>
-                      {players.filter((u) => u.id !== me.id).map((u, pi) => {
-                        const locked = hasLocked(m, u)
-                        return (
-                          <div key={u.id} className="ff-voter">
-                            <div className="ff-voter-id">
-                              {avatarFor(u.name)
-                                ? <span className="ff-bc-ring" style={{ '--ring': playerColor(u.name, pi + 1) } as CSSProperties}><img className="ff-bc-av" src={avatarFor(u.name)} width={30} height={30} alt={u.name} /></span>
-                                : <span className="ff-av" style={avatarStyle(u.name, pi + 1, false)}>{u.name[0]}</span>}
-                              <span className="ff-voter-name">{u.name}</span>
-                            </div>
-                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 13, fontWeight: 600, color: locked ? 'var(--good)' : 'var(--faint)' }}>
-                              <span style={{ width: 7, height: 7, borderRadius: '50%', background: locked ? 'var(--good)' : 'var(--faint)' }} />
-                              {locked ? 'Locked in' : 'Waiting'}
-                            </span>
-                          </div>
-                        )
-                      })}
-                    </div>
-                    <div style={{ marginTop: 10, fontSize: 12.5, color: 'var(--faint)' }}>
-                      You picked <strong style={{ color: 'var(--ink)' }}>{myLabel(myCurrent)}</strong>. Everyone's picks reveal at kickoff.
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
+            {voteMatches.length === 0 ? (
+              <div className="ff-poll" style={{ marginTop: 14 }}>No upcoming matches to vote on.</div>
+            ) : (
+              <>
+                <button className="ffvt-cta" onClick={() => setVoteAt(firstUnpickedVote)}>
+                  {allVotesIn ? 'Review your picks →' : 'Make your picks →'}
+                </button>
+                <div className="ffvt-list">
+                  {voteMatches.map((m, i) => {
+                    const total = votedCount(m)
+                    const done = total === players.length
+                    const mySide = pickSide(m, picksByMatch[m.id]?.[me.id])
+                    const myLabel = mySide === null ? null : mySide === 'draw' ? 'Draw' : teamLabel(mySide === 'home' ? m.home_team_id : m.away_team_id)
+                    return (
+                      <button key={m.id} className="ffvt-card" onClick={() => setVoteAt(i)}>
+                        <div className="ffvt-top">
+                          <span className="ffvt-date">{formatKickoffBogota(m.kickoff).day} · {formatKickoffBogota(m.kickoff).time}</span>
+                          <VoteCountdown kickoff={m.kickoff} />
+                        </div>
+                        <div className="ffvt-teams">
+                          <span className="ffvt-team"><Flag teamId={m.home_team_id} emoji={teamEmoji(m.home_team_id)} size={26} /><span className="ffvt-tname">{teamLabel(m.home_team_id)}</span></span>
+                          <span className="ffvt-vs">VS</span>
+                          <span className="ffvt-team away"><span className="ffvt-tname">{teamLabel(m.away_team_id)}</span><Flag teamId={m.away_team_id} emoji={teamEmoji(m.away_team_id)} size={26} /></span>
+                        </div>
+                        <div className="ffvt-foot">
+                          {myLabel
+                            ? <span className="ffvt-pick">Your pick · <b>{myLabel}</b></span>
+                            : <span className="ffvt-pick unset">Not picked yet</span>}
+                          <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                            <span className={`ffvt-sealed${done ? ' done' : ''}`}><span className="d" />{total}/{players.length} sealed</span>
+                            <span className={`ffvt-go${myLabel ? ' set' : ''}`}>{myLabel ? 'Change' : 'Pick'} →</span>
+                          </span>
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
+              </>
+            )}
           </div>
         )}
 
@@ -585,6 +564,20 @@ function App() {
         )}
 
       </div>
+
+      {/* Versus-split voting modal — overlays the page from any tab/banner. */}
+      {voteAt !== null && voteMatches.length > 0 && (
+        <VoteModal
+          matches={voteMatches}
+          startIndex={voteAt}
+          me={me}
+          picksByMatch={picksByMatch}
+          teamLabel={teamLabel}
+          teamEmoji={teamEmoji}
+          onCast={castVote}
+          onClose={() => setVoteAt(null)}
+        />
+      )}
     </div>
   )
 }
