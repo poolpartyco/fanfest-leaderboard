@@ -352,7 +352,9 @@ function App() {
               <NextUpPoll
                 match={nextMatch}
                 players={players}
+                me={me}
                 picksByMatch={picksByMatch}
+                lockedUserIds={lockedByMatch[nextMatch.id] ?? []}
                 teamLabel={teamLabel}
                 teamEmoji={teamEmoji}
                 onVote={() => setTab('vote')}

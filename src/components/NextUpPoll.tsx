@@ -8,26 +8,26 @@ import { VoteCountdown } from './VoteCountdown'
 type Props = {
   match: MatchRow
   players: UserRow[]
+  me: UserRow
   picksByMatch: Record<string, Record<string, string>>
+  // Who has locked a pick (no team revealed) — keeps the banner confidential.
+  lockedUserIds: string[]
   teamLabel: (id: string | null) => string
   teamEmoji: (id: string | null) => string | undefined
   onVote: () => void
 }
 
-// The next fixture's poll, shown in the banner slot when no match is live.
-// Same Broadcast Stands language, but VS + kickoff instead of a score, and the
-// stands show who voted for whom.
-export function NextUpPoll({ match, players, picksByMatch, teamLabel, teamEmoji, onVote }: Props) {
-  const sideOf = (u: UserRow) => pickSide(match, picksByMatch[match.id]?.[u.id])
-  const indexOf = (u: UserRow) => players.indexOf(u)
-  const home = players.filter((u) => sideOf(u) === 'home')
-  const draw = players.filter((u) => sideOf(u) === 'draw')
-  const away = players.filter((u) => sideOf(u) === 'away')
-  const voted = home.length + draw.length + away.length
+// The next fixture's banner when no match is live. Picks are confidential until
+// kickoff, so it shows who's LOCKED IN (not their team) plus your own pick.
+export function NextUpPoll({ match, players, me, picksByMatch, lockedUserIds, teamLabel, teamEmoji, onVote }: Props) {
+  const locked = new Set(lockedUserIds)
+  const lockedCount = players.filter((u) => locked.has(u.id)).length
+  const mySide = pickSide(match, picksByMatch[match.id]?.[me.id])
+  const myLabel = mySide === null ? null : mySide === 'draw' ? 'Draw' : teamLabel(mySide === 'home' ? match.home_team_id : match.away_team_id)
   const homeName = teamLabel(match.home_team_id)
   const awayName = teamLabel(match.away_team_id)
   const when = formatKickoffBogota(match.kickoff)
-  const done = voted === players.length
+  const done = lockedCount === players.length
 
   return (
     <div className="ff-bc">
@@ -38,7 +38,7 @@ export function NextUpPoll({ match, players, picksByMatch, teamLabel, teamEmoji,
         <div className="ff-bc-min">
           <span className="ff-bc-nexttag">Next up</span>
           <span className="ff-bc-when">{when.day} · {when.time}</span>
-          <span className="ff-voted" style={{ background: done ? 'rgba(94,224,160,.14)' : 'var(--panel2)', border: `1px solid ${done ? 'rgba(94,224,160,.4)' : 'var(--line)'}`, color: done ? 'var(--good)' : 'var(--muted)' }}>{voted}/{players.length} voted</span>
+          <span className="ff-voted" style={{ background: done ? 'rgba(94,224,160,.14)' : 'var(--panel2)', border: `1px solid ${done ? 'rgba(94,224,160,.4)' : 'var(--line)'}`, color: done ? 'var(--good)' : 'var(--muted)' }}>{lockedCount}/{players.length} locked in</span>
         </div>
         <div className="ff-bc-row">
           <div className="ff-bc-team">
@@ -57,33 +57,32 @@ export function NextUpPoll({ match, players, picksByMatch, teamLabel, teamEmoji,
         </div>
       </div>
 
-      <div className="ff-bc-stands">
-        <div className="ff-bc-stand">
-          <div className="ff-bc-head"><b>{home.length}</b> backing {homeName}</div>
-          <div className="ff-bc-stack">
-            {home.length === 0 && <span className="ff-bc-empty">No votes yet</span>}
-            {home.map((u) => <Avatar key={u.id} name={u.name} index={indexOf(u)} />)}
-          </div>
+      {/* Sealed stands: who has locked in, never which side, until kickoff. */}
+      <div className="ff-bc-stands" style={{ display: 'block', textAlign: 'center' }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: 'var(--faint)', fontSize: 13, fontWeight: 600 }}>
+          <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--accent)' }} />
+          Picks are sealed until kickoff
         </div>
-        <div className="ff-bc-stand mid">
-          <div className="ff-bc-cnt">{draw.length}</div>
-          <div className="ff-bc-mlabel">Draw</div>
-          <div className="ff-bc-stack" style={{ marginTop: 10 }}>
-            {draw.map((u) => <Avatar key={u.id} name={u.name} index={indexOf(u)} size={44} />)}
-          </div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 22, marginTop: 16 }}>
+          {players.map((u) => {
+            const has = locked.has(u.id)
+            return (
+              <div key={u.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, opacity: has ? 1 : 0.5 }}>
+                <Avatar name={u.name} index={players.indexOf(u)} />
+                <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ink)' }}>{u.id === me.id ? 'You' : u.name}</span>
+                <span style={{ fontSize: 11, fontWeight: 600, color: has ? 'var(--good)' : 'var(--faint)' }}>{has ? 'Locked in' : 'Waiting'}</span>
+              </div>
+            )
+          })}
         </div>
-        <div className="ff-bc-stand r">
-          <div className="ff-bc-head">backing {awayName} <b>{away.length}</b></div>
-          <div className="ff-bc-stack r">
-            {away.length === 0 && <span className="ff-bc-empty">No votes yet</span>}
-            {away.map((u) => <Avatar key={u.id} name={u.name} index={indexOf(u)} />)}
-          </div>
+        <div style={{ marginTop: 16, fontSize: 13, color: 'var(--muted)' }}>
+          {myLabel ? <>You're backing <b style={{ color: 'var(--ink)' }}>{myLabel}</b>.</> : 'You haven\'t picked yet.'}
         </div>
       </div>
 
       <div className="ff-bc-foot">
-        <span className="ff-bc-hint">{done ? 'Everyone is in. ' : `${players.length - voted} still to vote. `}Picks lock at <b>{when.time}</b>.</span>
-        <button className="ff-bc-cta" onClick={onVote}>Change a pick</button>
+        <span className="ff-bc-hint">{done ? 'Everyone is in. ' : `${players.length - lockedCount} still to lock in. `}Picks lock at <b>{when.time}</b>.</span>
+        <button className="ff-bc-cta" onClick={onVote}>{myLabel ? 'Change your pick' : 'Make your pick'}</button>
       </div>
     </div>
   )
