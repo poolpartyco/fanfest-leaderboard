@@ -21,23 +21,24 @@ export function parseScore(current: string | null | undefined): {
 
 /**
  * Map a Highlightly state description to our MatchState.
- * "Not started" -> scheduled; terminal states ("Finished", "After extra time",
- * "After penalties", AET, walkover, abandoned/cancelled) -> finished; anything
- * else (including in-progress "Extra time" and "Penalties") -> live.
+ * "Not started" -> scheduled; terminal states -> finished; anything else
+ * (including in-progress "Extra time" and "Penalties") -> live.
  * Case-insensitive and whitespace-tolerant.
  *
- * Knockout matches can finish after extra time or a shootout, so we can't rely
- * on the exact word "Finished": a match left as 'live' would never score. We
- * only treat clearly post-match descriptions as finished — note "Extra time"
- * and "Penalties" (shootout in progress) deliberately stay 'live' until the
- * "after …" terminal lands.
+ * A knockout decided after extra time or a shootout comes back as
+ * "Finished after penalties" / "Finished after extra time" — NOT a bare
+ * "Finished" — so we match on the "finish"/"ended" stem rather than the exact
+ * word; otherwise such a match stays 'live' forever and never scores. The
+ * in-progress "Extra time" and "Penalties" descriptions contain neither stem,
+ * so they correctly stay live until the "Finished …" terminal lands.
  */
 export function mapState(description: string): MatchState {
   const normalized = (description ?? '').trim().toLowerCase()
   if (normalized === 'not started' || normalized === 'tbd') return 'scheduled'
   if (
-    normalized === 'finished' ||
-    normalized.startsWith('after ') || // "After extra time" / "After penalties"
+    normalized.includes('finish') ||
+    normalized.includes('ended') ||
+    normalized.startsWith('after ') || // standalone "After extra time" / "After penalties"
     normalized === 'aet' ||
     normalized.includes('awarded') ||
     normalized.includes('walkover') ||

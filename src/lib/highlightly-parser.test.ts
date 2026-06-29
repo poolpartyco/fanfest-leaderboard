@@ -55,6 +55,10 @@ describe('mapState', () => {
   })
 
   it('treats extra-time / penalty finishes as finished', () => {
+    // The exact strings the API returns for a knockout decided after ET / pens.
+    expect(mapState('Finished after penalties')).toBe('finished')
+    expect(mapState('Finished after extra time')).toBe('finished')
+    // Plus other terminal spellings we guard against defensively.
     expect(mapState('After extra time')).toBe('finished')
     expect(mapState('After penalties')).toBe('finished')
     expect(mapState('AET')).toBe('finished')
@@ -152,8 +156,9 @@ describe('parseMatchesResponse', () => {
           date: '2026-06-29T19:00:00.000Z',
           homeTeam: { id: 22059, name: 'Germany' },
           awayTeam: { id: 2026164, name: 'Paraguay' },
-          // 1-1 after 120', Germany through 4-3 on penalties.
-          state: { clock: 120, description: 'After penalties', score: { current: '1 - 1', penalties: '4 - 3' } },
+          // 1-1 after 120', Germany through 4-3 on penalties. The API spells
+          // the terminal status "Finished after penalties".
+          state: { clock: 120, description: 'Finished after penalties', score: { current: '1 - 1', penalties: '4 - 3' } },
         },
       ],
     }
