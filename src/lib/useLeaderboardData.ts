@@ -13,12 +13,16 @@ type State = {
   data: LeaderboardData | null
   loading: boolean
   error: string | null
+  // Who has locked a pick for each not-yet-started match (no team revealed).
+  // Keyed by match id -> set of user ids. Lets the UI show "3 of 4 locked in"
+  // without leaking the actual picks once confidentiality RLS is live.
+  lockedByMatch: Record<string, string[]>
 }
 
 const LIVE_REFRESH_MS = 30_000
 
 export function useLeaderboardData() {
-  const [state, setState] = useState<State>({ data: null, loading: true, error: null })
+  const [state, setState] = useState<State>({ data: null, loading: true, error: null, lockedByMatch: {} })
 
   const load = useCallback(async (background = false) => {
     if (!background) setState((s) => ({ ...s, loading: true, error: null }))
@@ -30,9 +34,25 @@ export function useLeaderboardData() {
     ])
     const firstError = users.error ?? teams.error ?? matches.error ?? picks.error
     if (firstError) {
-      setState({ data: null, loading: false, error: firstError.message })
+      setState({ data: null, loading: false, error: firstError.message, lockedByMatch: {} })
       return
     }
+
+    // Lock status for scheduled matches (who voted, not what). Tolerant: the RPC
+    // only exists once the confidentiality migration is applied — before then we
+    // derive locks from the picks we can already read (RLS is still open).
+    const lockedByMatch: Record<string, string[]> = {}
+    const status = await supabase.rpc('scheduled_pick_status')
+    const lockRows = (status.error ? null : status.data) as { match_id: string; user_id: string }[] | null
+    if (lockRows) {
+      for (const r of lockRows) (lockedByMatch[r.match_id] ??= []).push(r.user_id)
+    } else {
+      const scheduled = new Set((matches.data ?? []).filter((m: MatchRow) => m.state === 'scheduled').map((m) => m.id))
+      for (const p of (picks.data ?? []) as PickRow[]) {
+        if (scheduled.has(p.match_id)) (lockedByMatch[p.match_id] ??= []).push(p.user_id)
+      }
+    }
+
     setState({
       data: {
         users: (users.data ?? []) as UserRow[],
@@ -42,6 +62,7 @@ export function useLeaderboardData() {
       },
       loading: false,
       error: null,
+      lockedByMatch,
     })
   }, [])
 
@@ -53,7 +74,11 @@ export function useLeaderboardData() {
       if (!s.data) return s
       const picks = s.data.picks.filter((p) => !(p.match_id === matchId && p.user_id === userId))
       picks.push({ match_id: matchId, user_id: userId, picked_team_id: pickedTeamId })
-      return { ...s, data: { ...s.data, picks } }
+      const locked = s.lockedByMatch[matchId] ?? []
+      const lockedByMatch = locked.includes(userId)
+        ? s.lockedByMatch
+        : { ...s.lockedByMatch, [matchId]: [...locked, userId] }
+      return { ...s, data: { ...s.data, picks }, lockedByMatch }
     })
   }, [])
 
