@@ -1,0 +1,134 @@
+/* ===== Vote tab launcher cards (open the duel modal) ===== */
+.ffvt-cta {
+  display: inline-flex; align-items: center; gap: 8px; margin: 16px 0 2px;
+  background: var(--accent); color: #1a0a14; border: none;
+  font-family: var(--display); font-weight: 700; font-size: 15px;
+  padding: 12px 22px; border-radius: 999px; cursor: pointer;
+  transition: transform .15s, box-shadow .2s;
+}
+.ffvt-cta:hover { transform: translateY(-1px); box-shadow: 0 14px 34px rgba(255,95,162,.32); }
+.ffvt-cta:active { transform: translateY(0); }
+.ffvt-list { display: flex; flex-direction: column; gap: 12px; margin-top: 14px; }
+.ffvt-card {
+  border-radius: 18px; border: 1px solid var(--line);
+  background: linear-gradient(180deg, var(--panel), #150d28);
+  padding: 16px 18px; cursor: pointer; text-align: left; width: 100%;
+  display: flex; flex-direction: column; gap: 12px;
+  transition: transform .18s, border-color .2s, box-shadow .25s;
+}
+.ffvt-card:hover { transform: translateY(-2px); border-color: rgba(255,95,162,.38); box-shadow: 0 18px 44px rgba(0,0,0,.4); }
+.ffvt-card:active { transform: translateY(0); }
+.ffvt-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.ffvt-date { font-family: var(--display); font-weight: 700; font-size: 13.5px; color: var(--accent); }
+.ffvt-teams { display: flex; align-items: center; gap: 12px; }
+.ffvt-team { display: flex; align-items: center; gap: 9px; flex: 1; min-width: 0; }
+.ffvt-team.away { justify-content: flex-end; }
+.ffvt-tname { font-family: var(--display); font-weight: 700; font-size: 17px; letter-spacing: -.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ffvt-vs { font-family: var(--display); font-weight: 800; color: var(--faint); font-size: 12px; letter-spacing: .14em; }
+.ffvt-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.ffvt-pick { font-size: 13px; color: var(--muted); }
+.ffvt-pick b { color: var(--ink); font-weight: 700; }
+.ffvt-pick.unset { color: var(--faint); }
+.ffvt-sealed { font-size: 12px; color: var(--muted); display: inline-flex; align-items: center; gap: 7px; }
+.ffvt-sealed .d { width: 7px; height: 7px; border-radius: 2px; background: var(--faint); }
+.ffvt-sealed.done { color: var(--good); }
+.ffvt-sealed.done .d { background: var(--good); box-shadow: 0 0 8px var(--good); }
+.ffvt-go {
+  display: inline-flex; align-items: center; gap: 7px; font-size: 13.5px; font-weight: 700;
+  color: var(--ink); background: var(--accentSoft); border: 1px solid rgba(255,95,162,.32);
+  padding: 7px 14px; border-radius: 999px;
+}
+.ffvt-go.set { background: var(--panel2); border-color: var(--line); color: var(--muted); }
+
+/* ===== Modal scrim + shell ===== */
+.ffv-scrim {
+  position: fixed; inset: 0; background: rgba(8,5,16,.62);
+  -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
+  display: flex; align-items: center; justify-content: center; padding: 24px; z-index: 200;
+  animation: ffv-fade .25s ease;
+}
+@keyframes ffv-fade { from { opacity: 0; } to { opacity: 1; } }
+.ffv-modal {
+  width: min(620px, 100%); border-radius: 28px; overflow: hidden; position: relative;
+  background: linear-gradient(180deg, #1c1030, #130a23); border: 1px solid var(--line);
+  box-shadow: 0 50px 140px rgba(0,0,0,.7), 0 0 0 1px rgba(255,95,162,.12);
+  animation: ffv-rise .35s cubic-bezier(.2,1,.3,1) both;
+}
+@keyframes ffv-rise { from { transform: translateY(10px) scale(.98); } to { transform: none; } }
+
+.ffv-head { display: flex; align-items: center; justify-content: space-between; padding: 18px 22px 14px; gap: 12px; }
+.ffv-head .l { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.ffv-date { font-family: var(--display); font-weight: 700; font-size: 15px; color: var(--accent); white-space: nowrap; }
+.ffv-queue { font-size: 12px; color: var(--faint); display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+.ffv-queue b { color: var(--muted); }
+.ffv-qd { display: flex; gap: 5px; }
+.ffv-qd i { width: 7px; height: 7px; border-radius: 50%; background: var(--panel2); display: block; }
+.ffv-qd i.on { background: var(--good); box-shadow: 0 0 8px var(--good); }
+.ffv-qd i.cur { background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+.ffv-x { width: 34px; height: 34px; flex: none; border-radius: 50%; border: 1px solid var(--line); background: var(--panel2); color: var(--muted); font-size: 16px; cursor: pointer; display: grid; place-items: center; }
+.ffv-x:hover { color: var(--ink); }
+
+.ffv-ask { padding: 0 22px 14px; font-family: var(--display); font-weight: 800; font-size: 23px; letter-spacing: -.02em; line-height: 1.12; }
+
+/* ===== Duel arena — horizontal diagonal split ===== */
+.ffv-arena { position: relative; height: 300px; margin: 0 16px; border-radius: 22px; overflow: hidden; background: #0d0719; border: 1px solid var(--line); }
+.ffv-panel {
+  position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 13px;
+  cursor: pointer; border: none; background: transparent; color: var(--ink); font: inherit;
+  transition: clip-path .5s cubic-bezier(.5,0,.2,1), filter .35s;
+}
+.ffv-panel.home { clip-path: polygon(0 0, 58% 0, 42% 100%, 0 100%); background: radial-gradient(120% 120% at 30% 40%, rgba(255,95,162,.3), transparent 62%), linear-gradient(120deg, #2c1136, #190c27); padding-right: 14%; }
+.ffv-panel.away { clip-path: polygon(58% 0, 100% 0, 100% 100%, 42% 100%); background: radial-gradient(120% 120% at 72% 60%, rgba(255,194,75,.24), transparent 62%), linear-gradient(300deg, #2e2214, #190c27); padding-left: 14%; }
+.ffv-panel:hover { filter: brightness(1.12); }
+.ffv-flagwrap { transition: transform .5s; }
+.ffv-pname { font-family: var(--display); font-weight: 700; font-size: 25px; letter-spacing: -.02em; max-width: 90%; text-align: center; }
+.ffv-ptag { font-size: 11.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .16em; }
+.ffv-mine { font-size: 11px; color: var(--good); font-weight: 700; letter-spacing: .04em; }
+
+.ffv-seam { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); z-index: 4; }
+.ffv-draw {
+  cursor: pointer; display: flex; align-items: center; gap: 10px;
+  background: rgba(16,10,28,.9); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  border: 1px solid var(--line); color: #9aa7ba; font-family: var(--display); font-weight: 800;
+  letter-spacing: .12em; font-size: 14px; padding: 11px 20px; border-radius: 999px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.55); transition: transform .12s, border-color .2s;
+}
+.ffv-draw:hover { border-color: #9aa7ba; }
+.ffv-draw:active { transform: scale(.94); }
+.ffv-draw .x { width: 8px; height: 8px; border-radius: 50%; background: #9aa7ba; }
+.ffv-draw.mine { border-color: rgba(94,224,160,.5); color: var(--good); }
+.ffv-draw.mine .x { background: var(--good); }
+
+/* flood + seal states */
+.ffv-panel.win { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%) !important; z-index: 6; padding: 0 !important; cursor: default; }
+.ffv-panel.away.win { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%) !important; }
+.ffv-panel.home.lose { clip-path: polygon(0 0, 0 0, 0 100%, 0 100%) !important; filter: brightness(.28); }
+.ffv-panel.away.lose { clip-path: polygon(100% 0, 100% 0, 100% 100%, 100% 100%) !important; filter: brightness(.28); }
+.ffv-panel.win .ffv-flagwrap { transform: scale(1.12); }
+.ffv-panel.locked { pointer-events: none; }
+
+.ffv-confirm { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; z-index: 7; text-align: center; padding: 24px; animation: ffv-pop .4s .42s cubic-bezier(.2,1.2,.3,1) both; }
+@keyframes ffv-pop { from { opacity: 0; transform: scale(.93); } to { opacity: 1; transform: none; } }
+.ffv-confirm .lk { font-size: 32px; }
+.ffv-confirm h3 { font-family: var(--display); font-weight: 800; font-size: 23px; }
+.ffv-confirm p { color: rgba(255,255,255,.85); font-size: 13.5px; }
+
+.ffv-foot { padding: 16px 22px 20px; display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+.ffv-hint { color: var(--faint); font-size: 12.5px; }
+.ffv-hint b { color: var(--muted); font-weight: 600; }
+.ffv-actions { display: flex; gap: 10px; align-items: center; }
+.ffv-ghost { background: none; border: 1px solid var(--line); color: var(--muted); font: inherit; font-weight: 500; padding: 10px 18px; border-radius: 999px; cursor: pointer; font-size: 14px; }
+.ffv-ghost:hover { color: var(--ink); }
+.ffv-primary { background: var(--accent); color: #1a0a14; border: none; font: inherit; font-weight: 700; padding: 10px 22px; border-radius: 999px; cursor: pointer; font-size: 14px; }
+.ffv-primary:disabled { opacity: .45; pointer-events: none; }
+
+/* On narrow screens the modal becomes a full-height sheet. */
+@media (max-width: 620px) {
+  .ffv-scrim { padding: 0; align-items: stretch; }
+  .ffv-modal { width: 100%; border-radius: 0; min-height: 100dvh; display: flex; flex-direction: column; justify-content: center; }
+  .ffv-arena { height: 340px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ffv-scrim, .ffv-modal, .ffv-panel, .ffv-flagwrap, .ffv-confirm { animation: none !important; transition: none !important; }
+}
