@@ -12,6 +12,7 @@ import { LiveStands } from './components/LiveStands'
 import { NextUpPoll } from './components/NextUpPoll'
 import { VoteCountdown } from './components/VoteCountdown'
 import { KnockoutBracket } from './components/KnockoutBracket'
+import { RadialBracket } from './components/RadialBracket'
 import { RoadToGlory } from './components/RoadToGlory'
 import { hasBothTeams } from './lib/bracketView'
 import { useAuth } from './lib/auth'
@@ -569,13 +570,17 @@ function App() {
             <div className="ff-kb-head-band">
               <div className="ff-kb-head-kicker">World Cup 2026 · Knockout stage</div>
               <h2 className="ff-kb-head-title">Knockout bracket</h2>
-              <div className="ff-kb-legend">
-                <span className="ff-kb-leg"><i style={{ background: 'var(--bad)' }} />Live now</span>
-                <span className="ff-kb-leg"><i style={{ background: 'var(--accent)' }} />Winner advances</span>
-                <span className="ff-kb-leg"><i style={{ background: 'var(--faint)' }} />Awaiting result</span>
+              <div className="ff-bracket-desktop">
+                <div className="ff-kb-legend">
+                  <span className="ff-kb-leg"><i style={{ background: 'var(--bad)' }} />Live now</span>
+                  <span className="ff-kb-leg"><i style={{ background: 'var(--accent)' }} />Winner advances</span>
+                  <span className="ff-kb-leg"><i style={{ background: 'var(--faint)' }} />Awaiting result</span>
+                </div>
               </div>
             </div>
-            <KnockoutBracket matches={knockout} teamLabel={teamLabel} teamEmoji={teamEmoji} />
+            {/* Wide FIFA-style bracket on desktop; space-saving radial on mobile. */}
+            <div className="ff-bracket-desktop"><KnockoutBracket matches={knockout} teamLabel={teamLabel} teamEmoji={teamEmoji} /></div>
+            <div className="ff-bracket-mobile"><RadialBracket matches={knockout} teamLabel={teamLabel} teamEmoji={teamEmoji} /></div>
           </div>
         )}
 

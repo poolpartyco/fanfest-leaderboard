@@ -1,0 +1,70 @@
+/* Radial knockout bracket. Uses the app's theme variables (set on .ff-root). */
+
+/* Bracket view toggle: FIFA-style on desktop, radial on mobile. */
+.ff-bracket-mobile{ display:none; }
+@media (max-width:768px){
+  .ff-bracket-desktop{ display:none; }
+  .ff-bracket-mobile{ display:block; }
+}
+
+.rb2{ display:flex; flex-direction:column; align-items:center; }
+
+.rb2-stage{
+  position:relative; width:min(96vw, 560px); aspect-ratio:1; margin:0 auto;
+  /* let hover name labels spill past the rim */
+  overflow:visible;
+}
+.rb2-lines{ position:absolute; inset:0; width:100%; height:100%; overflow:visible; }
+.rb2-edge{ stroke:rgba(255,255,255,.14); stroke-width:1.6; stroke-linecap:round; }
+.rb2-edge.is-win{ stroke:var(--accent); stroke-width:2.4; }
+.rb2-edge.is-live{ stroke:var(--bad); stroke-width:2.4; }
+.rb2-edge.is-lose{ stroke:rgba(255,255,255,.07); }
+.rb2-dot{ fill:rgba(255,255,255,.28); }
+.rb2-dot.is-win{ fill:var(--accent); }
+.rb2-dot.is-live{ fill:var(--bad); }
+.rb2-ring{ fill:none; stroke:rgba(255,194,75,.45); stroke-width:1.4; }
+
+.rb2-badges{ position:absolute; inset:0; }
+.rb2-badge{
+  position:absolute; transform:translate(-50%,-50%); border-radius:50%;
+  display:grid; place-items:center; cursor:pointer; background:#1a1622;
+  box-shadow:0 0 0 1px rgba(255,255,255,.14), 0 5px 14px rgba(0,0,0,.55);
+  transition:transform .2s cubic-bezier(.16,1,.3,1), box-shadow .2s, opacity .2s;
+}
+.rb2-badge.is-win{ box-shadow:0 0 0 2px var(--accent), 0 0 16px rgba(255,95,162,.5); }
+.rb2-badge.is-live{ box-shadow:0 0 0 2px var(--bad), 0 0 16px rgba(255,122,138,.5); }
+.rb2-badge.is-lose{ opacity:.42; filter:grayscale(.7); }
+.rb2-badge.is-tbd{ background:rgba(36,22,48,.55); box-shadow:inset 0 0 0 1.5px rgba(255,205,235,.16); }
+.rb2-tbd{ width:34%; height:34%; border-radius:50%; background:rgba(255,205,235,.14); }
+
+/* Hover / focus: lift, enlarge, reveal the team (or slot) name. */
+.rb2-badge:hover, .rb2-badge:focus-visible{
+  transform:translate(-50%,-50%) scale(1.24); z-index:6; outline:none;
+  box-shadow:0 0 0 2px rgba(255,255,255,.85), 0 0 18px rgba(255,255,255,.22), 0 10px 22px rgba(0,0,0,.6);
+}
+.rb2-badge:hover.is-lose, .rb2-badge:focus-visible.is-lose{ opacity:1; filter:none; }
+.rb2-name{
+  position:absolute; top:110%; left:50%; transform:translateX(-50%) translateY(4px) scale(.9);
+  transform-origin:top center; opacity:0; pointer-events:none; white-space:nowrap; z-index:7;
+  background:rgba(18,12,30,.97); border:1px solid var(--line); color:var(--ink);
+  font-family:var(--display); font-weight:700; font-size:12px; padding:4px 10px; border-radius:9px;
+  box-shadow:0 8px 18px rgba(0,0,0,.55); transition:opacity .2s, transform .2s;
+}
+.rb2-badge:hover .rb2-name, .rb2-badge:focus-visible .rb2-name{
+  opacity:1; transform:translateX(-50%) translateY(0) scale(1);
+}
+
+.rb2-center{ position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:24%; aspect-ratio:1; display:grid; place-items:center; pointer-events:none; z-index:3; }
+.rb2-glow{ position:absolute; inset:-46%; border-radius:50%; background:radial-gradient(circle, rgba(255,200,90,.55), rgba(255,150,40,.2) 38%, transparent 66%); animation:rb2-breathe 4.5s ease-in-out infinite; }
+.rb2-trophy{ position:relative; font-size:clamp(26px,7vw,40px); filter:drop-shadow(0 4px 12px rgba(255,170,40,.6)); }
+
+.rb2-legend{ display:flex; gap:16px; flex-wrap:wrap; justify-content:center; margin-top:18px; font-size:12.5px; color:var(--muted); }
+.rb2-legend span{ display:inline-flex; align-items:center; gap:7px; }
+.rb2-legend i{ width:9px; height:9px; border-radius:50%; display:inline-block; }
+.rb2-legend .d-live{ background:var(--bad); }
+.rb2-legend .d-win{ background:var(--accent); }
+.rb2-legend .d-idle{ background:rgba(255,255,255,.28); }
+.rb2-legend .d-gold{ background:var(--gold); }
+
+@keyframes rb2-breathe{ 0%,100%{ opacity:.85; transform:scale(1); } 50%{ opacity:1; transform:scale(1.07); } }
+@media (prefers-reduced-motion:reduce){ .rb2-glow{ animation:none; } .rb2-badge{ transition:none; } }
