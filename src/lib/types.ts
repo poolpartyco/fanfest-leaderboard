@@ -14,6 +14,8 @@ export type SourceResult = 'winner' | 'loser'
 export type UserRow = {
   id: string
   name: string
+  // Google account this player signs in with. Null for rows not yet linked.
+  email?: string | null
 }
 
 export type TeamRow = {

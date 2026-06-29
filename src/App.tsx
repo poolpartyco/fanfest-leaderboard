@@ -14,6 +14,8 @@ import { VoteCountdown } from './components/VoteCountdown'
 import { KnockoutBracket } from './components/KnockoutBracket'
 import { RoadToGlory } from './components/RoadToGlory'
 import { hasBothTeams } from './lib/bracketView'
+import { useAuth } from './lib/auth'
+import { Login } from './components/Login'
 import type { MatchRow, TeamRow, UserRow } from './lib/types'
 
 type Tab = 'leaderboard' | 'vote' | 'matches' | 'upcoming' | 'bracket'
@@ -41,8 +43,22 @@ const ROOT_BG =
   'repeating-linear-gradient(90deg, rgba(255,255,255,.013) 0 66px, rgba(0,0,0,0) 66px 132px),' +
   'var(--bg0)'
 
+// Signed into Google, but the email isn't linked to any of the four players.
+function NotInPool({ email, onSignOut }: { email: string | null; onSignOut: () => void }) {
+  return (
+    <div className="ff-root" style={{ ...(THEMES.fiesta as CSSProperties), background: ROOT_BG }}>
+      <div className="ff-state">
+        <p className="ff-state-title">You're not in this pool</p>
+        <p>{email ? <><strong>{email}</strong> isn't linked to a player.</> : 'This account isn\'t linked to a player.'} Ask the organizer to add you, then sign in again.</p>
+        <button className="ff-segbtn" style={{ marginTop: 14, borderColor: 'var(--line)' }} onClick={onSignOut}>Sign out</button>
+      </div>
+    </div>
+  )
+}
+
 function App() {
-  const { data, loading, error, refresh, applyPick } = useLeaderboardData()
+  const { session, loading: authLoading, email: authEmail, signOut } = useAuth()
+  const { data, loading, error, refresh, applyPick, lockedByMatch } = useLeaderboardData()
   const hash = typeof window !== 'undefined' ? window.location.hash.slice(1).split('/') : []
   const initialTab = TABS.find((t) => t === hash[0]) ?? 'leaderboard'
   const [tab, setTab] = useState<Tab>(initialTab)
@@ -93,6 +109,18 @@ function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, tab])
 
+  // Auth gate runs before data: show the login until a Google session exists.
+  if (authLoading) {
+    return (
+      <div className="ff-root" style={{ ...(THEMES.fiesta as CSSProperties), background: ROOT_BG }}>
+        <div className="ff-state"><span className="ff-spinner" /><p>Checking your session…</p></div>
+      </div>
+    )
+  }
+  if (!session) {
+    return <Login />
+  }
+
   if (loading) {
     return (
       <div className="ff-root" style={{ ...(THEMES.fiesta as CSSProperties), background: ROOT_BG }}>
@@ -109,6 +137,13 @@ function App() {
   }
 
   const { teamLabel, teamEmoji, standings, live, past, upcoming, knockout, picksByMatch, players } = vm
+
+  // Map the Google session to one of the four players by email.
+  const me = players.find((p) => p.email && authEmail && p.email.toLowerCase() === authEmail.toLowerCase()) ?? null
+  if (!me) {
+    return <NotInPool email={authEmail} onSignOut={signOut} />
+  }
+
   const leader = standings[0]
   const hasLive = live.length > 0
 
@@ -205,16 +240,18 @@ function App() {
   // Vote tab only shows the current day's fixtures (falls back to the soonest
   // upcoming matchday so it's never empty).
   const voteMatches = voteDayMatches(upcoming, new Date())
-  const votedCount = (m: MatchRow) => players.filter((u) => picksByMatch[m.id]?.[u.id] !== undefined).length
-  const sideMembers = (m: MatchRow, side: Side) => players.filter((u) => pickSide(m, picksByMatch[m.id]?.[u.id]) === side)
+  // Counts/locks come from lock-status (who voted, not what) so they stay correct
+  // once others' scheduled picks are hidden by RLS.
+  const votedCount = (m: MatchRow) => lockedByMatch[m.id]?.length ?? 0
+  const hasLocked = (m: MatchRow, u: UserRow) => (lockedByMatch[m.id] ?? []).includes(u.id)
 
-  // Optimistic: reflect the pick instantly, then persist in the background.
-  // Only re-sync from the server if the write fails (e.g. locked at kickoff).
-  const castVote = (m: MatchRow, u: UserRow, side: Side) => {
+  // You can only cast your OWN pick. Optimistic, then persist; RLS enforces the
+  // identity + before-kickoff window server-side.
+  const castVote = (m: MatchRow, side: Side) => {
     const teamId = sideToTeamId(m, side)
     if (teamId === null) return // unresolved slot has no team to back yet
-    applyPick(m.id, u.id, teamId)
-    void submitPick(m.id, u.id, teamId).then(({ error }) => {
+    applyPick(m.id, me.id, teamId)
+    void submitPick(m.id, me.id, teamId).then(({ error }) => {
       if (error) refresh()
     })
   }
@@ -243,10 +280,25 @@ function App() {
       <div className="ff-wrap">
 
         {/* Header */}
-        <div className="ff-header">
+        <div className="ff-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
           <div className="ff-brand">
             <div className="ff-brand-mark"><div className="ff-brand-dot" /></div>
             <span className="ff-brand-name">FanFest · PoolParty</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span className="ff-bc-ring" style={{ '--ring': playerColor(me.name, players.indexOf(me)) } as CSSProperties} title={me.name}>
+              {avatarFor(me.name)
+                ? <img className="ff-bc-av" src={avatarFor(me.name)} width={30} height={30} alt={me.name} />
+                : <span className="ff-bc-av ff-bc-av--init" style={{ width: 30, height: 30, background: playerColor(me.name, players.indexOf(me)) }}>{me.name[0]}</span>}
+            </span>
+            <span style={{ fontWeight: 700, fontSize: 14, color: 'var(--ink)' }}>{me.name}</span>
+            <button
+              onClick={() => void signOut()}
+              style={{ background: 'var(--panel2)', border: '1px solid var(--line)', color: 'var(--muted)', borderRadius: 9999, padding: '6px 12px', fontSize: 12.5, fontWeight: 600, cursor: 'pointer' }}
+              title="Sign out"
+            >
+              Sign out
+            </button>
           </div>
         </div>
 
@@ -342,62 +394,74 @@ function App() {
           </div>
         )}
 
-        {/* Vote */}
+        {/* Vote — you cast only your own pick; everyone's picks stay sealed
+            until kickoff so nobody can be influenced. */}
         {tab === 'vote' && (
           <div>
-            <div className="ff-vote-intro">Cast each member's pick before kickoff. <strong>3 points</strong> for every correct call, and picks lock at kickoff.</div>
+            <div className="ff-vote-intro">Lock your pick before kickoff. <strong>3 points</strong> for a correct call. Everyone's picks stay sealed until the match starts.</div>
             <div className="ff-vote-list">
               {voteMatches.length === 0 && <div className="ff-poll">No upcoming matches to vote on.</div>}
               {voteMatches.map((m) => {
                 const total = votedCount(m)
                 const done = total === players.length
+                const myCurrent = pickSide(m, picksByMatch[m.id]?.[me.id])
                 const keys: [Side, string][] = [['home', teamLabel(m.home_team_id)], ['draw', 'Draw'], ['away', teamLabel(m.away_team_id)]]
+                const myLabel = (s: Side | null) => s === null ? '—' : s === 'draw' ? 'Draw' : teamLabel(s === 'home' ? m.home_team_id : m.away_team_id)
                 return (
                   <div key={m.id} className="ff-poll">
                     <div className="ff-poll-head">
                       <span className="ff-poll-date">{formatKickoffBogota(m.kickoff).day} · {formatKickoffBogota(m.kickoff).time}</span>
                       <VoteCountdown kickoff={m.kickoff} />
-                      <span className="ff-voted" style={{ background: done ? 'rgba(94,224,160,.14)' : 'var(--panel2)', border: `1px solid ${done ? 'rgba(94,224,160,.4)' : 'var(--line)'}`, color: done ? 'var(--good)' : 'var(--muted)' }}>{total}/{players.length} voted</span>
+                      <span className="ff-voted" style={{ background: done ? 'rgba(94,224,160,.14)' : 'var(--panel2)', border: `1px solid ${done ? 'rgba(94,224,160,.4)' : 'var(--line)'}`, color: done ? 'var(--good)' : 'var(--muted)' }}>{total}/{players.length} locked in</span>
                     </div>
                     <div className="ff-poll-teams">
                       <div className="ff-poll-team"><Flag teamId={m.home_team_id} emoji={teamEmoji(m.home_team_id)} size={26} /><span className="ff-poll-tname">{teamLabel(m.home_team_id)}</span></div>
                       <span className="ff-vs">vs</span>
                       <div className="ff-poll-team away"><span className="ff-poll-tname">{teamLabel(m.away_team_id)}</span><Flag teamId={m.away_team_id} emoji={teamEmoji(m.away_team_id)} size={26} /></div>
                     </div>
-                    <div className="ff-tally">
-                      {keys.map(([side]) => {
-                        const pct = total ? (sideMembers(m, side).length / total) * 100 : 0
-                        return <span key={side} style={{ width: `${pct}%`, background: OPT_COLOR[side] }} />
-                      })}
+
+                    {/* Your own pick — the only one you can set */}
+                    <div className="ff-voter" style={{ marginTop: 4 }}>
+                      <div className="ff-voter-id">
+                        <span className="ff-bc-ring" style={{ '--ring': playerColor(me.name, players.indexOf(me)) } as CSSProperties}>
+                          {avatarFor(me.name)
+                            ? <img className="ff-bc-av" src={avatarFor(me.name)} width={30} height={30} alt={me.name} />
+                            : <span className="ff-bc-av ff-bc-av--init" style={{ width: 30, height: 30, background: playerColor(me.name, players.indexOf(me)) }}>{me.name[0]}</span>}
+                        </span>
+                        <span className="ff-voter-name">Your pick</span>
+                      </div>
+                      <div className="ff-voter-opts">
+                        {keys.map(([side, label]) => {
+                          const active = myCurrent === side
+                          return (
+                            <button key={side} className="ff-voteseg" style={active ? { borderColor: OPT_COLOR[side], background: OPT_COLOR[side], color: '#0a0f1c' } : undefined} onClick={() => castVote(m, side)}>{label}</button>
+                          )
+                        })}
+                      </div>
                     </div>
-                    <div className="ff-tlabels">
-                      {keys.map(([side, label]) => (
-                        <span key={side}><b>{sideMembers(m, side).length}</b> {label}</span>
-                      ))}
-                    </div>
-                    <div className="ff-poll-voters">
-                      {players.map((u, pi) => {
-                        const current = pickSide(m, picksByMatch[m.id]?.[u.id])
-                        const src = avatarFor(u.name)
+
+                    {/* Everyone else — locked or waiting, never their actual pick */}
+                    <div className="ff-poll-voters" style={{ marginTop: 10 }}>
+                      {players.filter((u) => u.id !== me.id).map((u, pi) => {
+                        const locked = hasLocked(m, u)
                         return (
                           <div key={u.id} className="ff-voter">
                             <div className="ff-voter-id">
-                              {src
-                                ? <span className="ff-bc-ring" style={{ '--ring': playerColor(u.name, pi) } as CSSProperties}><img className="ff-bc-av" src={src} width={30} height={30} alt={u.name} /></span>
-                                : <span className="ff-av" style={avatarStyle(u.name, pi, false)}>{u.name[0]}</span>}
+                              {avatarFor(u.name)
+                                ? <span className="ff-bc-ring" style={{ '--ring': playerColor(u.name, pi + 1) } as CSSProperties}><img className="ff-bc-av" src={avatarFor(u.name)} width={30} height={30} alt={u.name} /></span>
+                                : <span className="ff-av" style={avatarStyle(u.name, pi + 1, false)}>{u.name[0]}</span>}
                               <span className="ff-voter-name">{u.name}</span>
                             </div>
-                            <div className="ff-voter-opts">
-                              {keys.map(([side, label]) => {
-                                const active = current === side
-                                return (
-                                  <button key={side} className="ff-voteseg" style={active ? { borderColor: OPT_COLOR[side], background: OPT_COLOR[side], color: '#0a0f1c' } : undefined} onClick={() => castVote(m, u, side)}>{label}</button>
-                                )
-                              })}
-                            </div>
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 13, fontWeight: 600, color: locked ? 'var(--good)' : 'var(--faint)' }}>
+                              <span style={{ width: 7, height: 7, borderRadius: '50%', background: locked ? 'var(--good)' : 'var(--faint)' }} />
+                              {locked ? 'Locked in' : 'Waiting'}
+                            </span>
                           </div>
                         )
                       })}
+                    </div>
+                    <div style={{ marginTop: 10, fontSize: 12.5, color: 'var(--faint)' }}>
+                      You picked <strong style={{ color: 'var(--ink)' }}>{myLabel(myCurrent)}</strong>. Everyone's picks reveal at kickoff.
                     </div>
                   </div>
                 )
