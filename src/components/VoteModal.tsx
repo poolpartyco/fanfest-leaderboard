@@ -19,7 +19,7 @@ type Props = {
 }
 
 // Tinder-style "versus split" voting. One match at a time: tap a team half and
-// it floods the arena, then seals. Your pick is the only one ever shown — others
+// it floods the arena, then seals. Your pick is the only one ever shown; others
 // stay confidential until kickoff (RLS enforces it server-side).
 export function VoteModal({ matches, startIndex, me, picksByMatch, teamLabel, teamEmoji, onCast, onClose }: Props) {
   const [idx, setIdx] = useState(startIndex)
@@ -113,9 +113,11 @@ export function VoteModal({ matches, startIndex, me, picksByMatch, teamLabel, te
 
           {picked !== null && (
             <div className="ffv-confirm">
-              <div className="lk" aria-hidden="true">🔒</div>
+              {picked === 'draw'
+                ? <span className="ffv-cdraw" aria-hidden="true" />
+                : <span className="ffv-cflag"><Flag teamId={picked === 'home' ? m.home_team_id : m.away_team_id} emoji={teamEmoji(picked === 'home' ? m.home_team_id : m.away_team_id)} size={66} /></span>}
               <h3>{confirmLabel}</h3>
-              <p>Sealed — hidden from everyone until kickoff</p>
+              <p><span aria-hidden="true">🔒</span> Sealed, hidden until kickoff</p>
             </div>
           )}
         </div>

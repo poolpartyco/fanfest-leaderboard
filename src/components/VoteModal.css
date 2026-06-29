@@ -70,18 +70,18 @@
 
 .ffv-ask { padding: 0 22px 14px; font-family: var(--display); font-weight: 800; font-size: 23px; letter-spacing: -.02em; line-height: 1.12; }
 
-/* ===== Duel arena — horizontal diagonal split ===== */
+/* ===== Duel arena: horizontal diagonal split ===== */
 .ffv-arena { position: relative; height: 300px; margin: 0 16px; border-radius: 22px; overflow: hidden; background: #0d0719; border: 1px solid var(--line); }
 .ffv-panel {
   position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 13px;
   cursor: pointer; border: none; background: transparent; color: var(--ink); font: inherit;
   transition: clip-path .5s cubic-bezier(.5,0,.2,1), filter .35s;
 }
-.ffv-panel.home { clip-path: polygon(0 0, 58% 0, 42% 100%, 0 100%); background: radial-gradient(120% 120% at 30% 40%, rgba(255,95,162,.3), transparent 62%), linear-gradient(120deg, #2c1136, #190c27); padding-right: 14%; }
-.ffv-panel.away { clip-path: polygon(58% 0, 100% 0, 100% 100%, 42% 100%); background: radial-gradient(120% 120% at 72% 60%, rgba(255,194,75,.24), transparent 62%), linear-gradient(300deg, #2e2214, #190c27); padding-left: 14%; }
-.ffv-panel:hover { filter: brightness(1.12); }
+.ffv-panel.home { clip-path: polygon(0 0, 58% 0, 42% 100%, 0 100%); background: radial-gradient(120% 120% at 28% 40%, rgba(255,95,162,.3), transparent 60%), linear-gradient(120deg, #2c1136, #190c27); padding-right: 26%; }
+.ffv-panel.away { clip-path: polygon(58% 0, 100% 0, 100% 100%, 42% 100%); background: radial-gradient(120% 120% at 74% 60%, rgba(255,194,75,.24), transparent 60%), linear-gradient(300deg, #2e2214, #190c27); padding-left: 26%; }
+.ffv-panel:not(.locked):hover { filter: brightness(1.12); }
 .ffv-flagwrap { transition: transform .5s; }
-.ffv-pname { font-family: var(--display); font-weight: 700; font-size: 25px; letter-spacing: -.02em; max-width: 90%; text-align: center; }
+.ffv-pname { font-family: var(--display); font-weight: 700; font-size: 23px; letter-spacing: -.02em; max-width: 96%; text-align: center; line-height: 1.05; }
 .ffv-ptag { font-size: 11.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .16em; }
 .ffv-mine { font-size: 11px; color: var(--good); font-weight: 700; letter-spacing: .04em; }
 
@@ -104,14 +104,22 @@
 .ffv-panel.away.win { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%) !important; }
 .ffv-panel.home.lose { clip-path: polygon(0 0, 0 0, 0 100%, 0 100%) !important; filter: brightness(.28); }
 .ffv-panel.away.lose { clip-path: polygon(100% 0, 100% 0, 100% 100%, 100% 100%) !important; filter: brightness(.28); }
-.ffv-panel.win .ffv-flagwrap { transform: scale(1.12); }
 .ffv-panel.locked { pointer-events: none; }
+/* Once a side is locked the panel is just a colour flood; its tag/flag/name are
+   hidden so the single sealed card below is the only thing in view. */
+.ffv-panel.locked > * { display: none; }
 
-.ffv-confirm { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; z-index: 7; text-align: center; padding: 24px; animation: ffv-pop .4s .42s cubic-bezier(.2,1.2,.3,1) both; }
+.ffv-confirm {
+  position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 10px; z-index: 7; text-align: center; padding: 24px;
+  background: radial-gradient(62% 56% at 50% 50%, rgba(10,6,18,.5), transparent 78%);
+  animation: ffv-pop .4s .42s cubic-bezier(.2,1.2,.3,1) both;
+}
 @keyframes ffv-pop { from { opacity: 0; transform: scale(.93); } to { opacity: 1; transform: none; } }
-.ffv-confirm .lk { font-size: 32px; }
-.ffv-confirm h3 { font-family: var(--display); font-weight: 800; font-size: 23px; }
-.ffv-confirm p { color: rgba(255,255,255,.85); font-size: 13.5px; }
+.ffv-cflag { filter: drop-shadow(0 10px 26px rgba(0,0,0,.55)); }
+.ffv-cdraw { width: 66px; height: 66px; border-radius: 50%; border: 3px solid rgba(255,255,255,.2); background: repeating-linear-gradient(45deg, #5a667a 0 8px, #46505f 8px 16px); box-shadow: 0 10px 26px rgba(0,0,0,.55); }
+.ffv-confirm h3 { font-family: var(--display); font-weight: 800; font-size: 23px; letter-spacing: -.01em; }
+.ffv-confirm p { color: rgba(255,255,255,.82); font-size: 13px; display: inline-flex; align-items: center; gap: 7px; }
 
 .ffv-foot { padding: 16px 22px 20px; display: flex; align-items: center; justify-content: space-between; gap: 14px; }
 .ffv-hint { color: var(--faint); font-size: 12.5px; }
@@ -122,11 +130,19 @@
 .ffv-primary { background: var(--accent); color: #1a0a14; border: none; font: inherit; font-weight: 700; padding: 10px 22px; border-radius: 999px; cursor: pointer; font-size: 14px; }
 .ffv-primary:disabled { opacity: .45; pointer-events: none; }
 
-/* On narrow screens the modal becomes a full-height sheet. */
-@media (max-width: 620px) {
+/* On phones the modal is a full-height sheet and the duel splits TOP/BOTTOM
+   (the phone-mock orientation), so team names never collide with the seam. */
+@media (max-width: 768px) {
   .ffv-scrim { padding: 0; align-items: stretch; }
-  .ffv-modal { width: 100%; border-radius: 0; min-height: 100dvh; display: flex; flex-direction: column; justify-content: center; }
-  .ffv-arena { height: 340px; }
+  .ffv-modal { width: 100%; border-radius: 0; min-height: 100dvh; display: flex; flex-direction: column; }
+  .ffv-arena { flex: 1; height: auto; margin: 0 14px 14px; }
+  .ffv-pname { font-size: 26px; }
+
+  .ffv-panel.home { clip-path: polygon(0 0, 100% 0, 100% 58%, 0 42%); background: radial-gradient(120% 90% at 50% 32%, rgba(255,95,162,.3), transparent 62%), linear-gradient(170deg, #2c1136, #190c27); padding: 0 0 16% 0; }
+  .ffv-panel.away { clip-path: polygon(0 42%, 100% 58%, 100% 100%, 0 100%); background: radial-gradient(120% 90% at 50% 68%, rgba(255,194,75,.24), transparent 62%), linear-gradient(10deg, #2e2214, #190c27); padding: 16% 0 0 0; }
+  .ffv-panel.home.win, .ffv-panel.away.win { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%) !important; }
+  .ffv-panel.home.lose { clip-path: polygon(0 0, 100% 0, 100% 0, 0 0) !important; }
+  .ffv-panel.away.lose { clip-path: polygon(0 100%, 100% 100%, 100% 100%, 0 100%) !important; }
 }
 
 @media (prefers-reduced-motion: reduce) {
