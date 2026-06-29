@@ -37,6 +37,12 @@ describe('getMatchWinner', () => {
     expect(getMatchWinner(match({ home_score: 1, away_score: 1 }))).toBe('draw')
   })
 
+  it("scores a knockout match decided on penalties as a draw (120' score, not the shootout)", () => {
+    // 1-1 after extra time, Germany through 4-3 on penalties. For pick scoring
+    // the result is a draw — the shootout only decides bracket progression.
+    expect(getMatchWinner(match({ home_score: 1, away_score: 1, penalty_home: 4, penalty_away: 3 }))).toBe('draw')
+  })
+
   it('returns null when home_score is null', () => {
     expect(getMatchWinner(match({ home_score: null, away_score: 2 }))).toBeNull()
   })

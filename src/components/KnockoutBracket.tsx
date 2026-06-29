@@ -19,6 +19,7 @@ function SlotRow({
   teamId,
   placeholder,
   score,
+  penalty,
   isWinner,
   teamLabel,
   teamEmoji,
@@ -26,6 +27,7 @@ function SlotRow({
   teamId: string | null
   placeholder: string
   score: number | null
+  penalty: number | null
   isWinner: boolean
   teamLabel: (id: string | null) => string
   teamEmoji: (id: string | null) => string | undefined
@@ -42,7 +44,10 @@ function SlotRow({
     <div className={`ff-kb-row${isWinner ? ' is-win' : ''}`}>
       <span className="ff-kb-flag"><Flag teamId={teamId} emoji={teamEmoji(teamId)} size={18} /></span>
       <span className="ff-kb-nm">{teamLabel(teamId)}</span>
-      <span className="ff-kb-sc">{score == null ? '' : score}</span>
+      <span className="ff-kb-sc">
+        {score == null ? '' : score}
+        {penalty != null && <span className="ff-kb-pens">({penalty})</span>}
+      </span>
     </div>
   )
 }
@@ -80,6 +85,7 @@ function MatchCard({
           teamId={m.home_team_id}
           placeholder={slotPlaceholder(m.home_source_match_id, m.home_source_result)}
           score={m.home_score}
+          penalty={m.penalty_home ?? null}
           isWinner={winnerId != null && winnerId === m.home_team_id}
           teamLabel={teamLabel}
           teamEmoji={teamEmoji}
@@ -88,6 +94,7 @@ function MatchCard({
           teamId={m.away_team_id}
           placeholder={slotPlaceholder(m.away_source_match_id, m.away_source_result)}
           score={m.away_score}
+          penalty={m.penalty_away ?? null}
           isWinner={winnerId != null && winnerId === m.away_team_id}
           teamLabel={teamLabel}
           teamEmoji={teamEmoji}

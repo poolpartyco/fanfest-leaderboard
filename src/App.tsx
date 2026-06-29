@@ -15,7 +15,7 @@ import { VoteModal } from './components/VoteModal'
 import { KnockoutBracket } from './components/KnockoutBracket'
 import { RadialBracket } from './components/RadialBracket'
 import { RoadToGlory } from './components/RoadToGlory'
-import { hasBothTeams } from './lib/bracketView'
+import { hasBothTeams, penaltyResult } from './lib/bracketView'
 import { useAuth } from './lib/auth'
 import { Login } from './components/Login'
 import type { MatchRow, TeamRow, UserRow } from './lib/types'
@@ -492,6 +492,19 @@ function App() {
                         <Flag teamId={m.away_team_id} emoji={teamEmoji(m.away_team_id)} size={30} />
                       </div>
                     </div>
+                    {(() => {
+                      // Drawn knockout decided on penalties: the match scores as a
+                      // draw (the pill above reads "Draw"); this only notes who
+                      // advanced and the shootout score.
+                      const pen = penaltyResult(m)
+                      if (!pen) return null
+                      const advName = pen.winnerId ? teamLabel(pen.winnerId) : null
+                      return (
+                        <div className="ff-match-pens">
+                          {advName ? `${advName} advance` : 'Decided on penalties'} · {pen.home}–{pen.away} on penalties
+                        </div>
+                      )
+                    })()}
                     <div className="ff-match-picks">
                       {players.map((u, i) => {
                         const r = presult(m, u)

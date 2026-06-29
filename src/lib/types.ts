@@ -33,6 +33,11 @@ export type MatchRow = {
   away_team_id: string | null
   home_score: number | null
   away_score: number | null
+  // Penalty-shootout goals when a drawn knockout match is decided on penalties.
+  // Null otherwise. home/away_score stays the 120' draw used for pick scoring;
+  // these only break the tie for bracket progression (advanced_team_id).
+  penalty_home?: number | null
+  penalty_away?: number | null
   state: MatchState
   highlightly_match_id: number | null
   // Live status from the API. Optional so older/not-yet-polled rows still type.
@@ -69,6 +74,9 @@ export type ParsedMatch = {
   awayTeamName: string
   homeScore: number | null
   awayScore: number | null
+  // Penalty-shootout goals from state.score.penalties (null when no shootout).
+  penaltyHome: number | null
+  penaltyAway: number | null
   state: MatchState
   clock?: number | null // API match minute (state.clock)
   statusDescription?: string | null // raw API status (state.description)

@@ -22,7 +22,11 @@ describe('advancedTeamId', () => {
     expect(advancedTeamId(ko({ id: 'M73', home_team_id: 'rsa', away_team_id: 'can', home_score: 2, away_score: 1, state: 'finished' }))).toBe('rsa')
     expect(advancedTeamId(ko({ id: 'M73', home_team_id: 'rsa', away_team_id: 'can', home_score: 0, away_score: 3, state: 'finished' }))).toBe('can')
   })
-  it('returns null for a draw (penalties decide it, set manually)', () => {
+  it('breaks a 120-minute draw with the penalty shootout winner', () => {
+    expect(advancedTeamId(ko({ id: 'M74', home_team_id: 'ger', away_team_id: 'par', home_score: 1, away_score: 1, penalty_home: 4, penalty_away: 3, state: 'finished' }))).toBe('ger')
+    expect(advancedTeamId(ko({ id: 'M74', home_team_id: 'ger', away_team_id: 'par', home_score: 1, away_score: 1, penalty_home: 2, penalty_away: 4, state: 'finished' }))).toBe('par')
+  })
+  it('returns null for a draw with no shootout recorded yet (set manually)', () => {
     expect(advancedTeamId(ko({ id: 'M73', home_team_id: 'rsa', away_team_id: 'can', home_score: 1, away_score: 1, state: 'finished' }))).toBeNull()
   })
   it('returns null when not finished or scores missing', () => {
@@ -45,6 +49,14 @@ describe('resolveBracket', () => {
     const m103 = ko({ id: 'M103', round: 'third', home_source_match_id: 'M101', home_source_result: 'loser', away_source_match_id: 'M102', away_source_result: 'loser' })
     const updates = resolveBracket([m101, m103])
     expect(updates.find((u) => u.id === 'M103')).toEqual({ id: 'M103', home_team_id: 'bra' })
+  })
+
+  it('auto-advances the penalty winner of a drawn knockout match', () => {
+    const m74 = ko({ id: 'M74', home_team_id: 'ger', away_team_id: 'par', home_score: 1, away_score: 1, penalty_home: 4, penalty_away: 3, state: 'finished' })
+    const m89 = ko({ id: 'M89', round: 'r16', home_source_match_id: 'M74', home_source_result: 'winner' })
+    const updates = resolveBracket([m74, m89])
+    expect(updates).toContainEqual({ id: 'M74', advanced_team_id: 'ger' })
+    expect(updates.find((u) => u.id === 'M89')).toEqual({ id: 'M89', home_team_id: 'ger' })
   })
 
   it('prefers an explicit advanced_team_id (penalty winner) over the score', () => {

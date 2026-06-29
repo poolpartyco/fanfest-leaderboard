@@ -23,7 +23,7 @@ async function main() {
   const { data: matches, error: mErr } = await admin
     .from('matches')
     .select(
-      'id,kickoff,home_team_id,away_team_id,home_score,away_score,state,highlightly_match_id,' +
+      'id,kickoff,home_team_id,away_team_id,home_score,away_score,penalty_home,penalty_away,state,highlightly_match_id,' +
         'stage,round,home_source_match_id,away_source_match_id,home_source_result,away_source_result,advanced_team_id',
     )
   if (mErr) throw mErr
@@ -75,6 +75,8 @@ async function main() {
         highlightly_match_id: u.highlightly_match_id,
         home_score: u.home_score,
         away_score: u.away_score,
+        penalty_home: u.penalty_home,
+        penalty_away: u.penalty_away,
         state: u.state,
         status_clock: u.status_clock,
         status_description: u.status_description,
@@ -89,7 +91,9 @@ async function main() {
   const updatedById = new Map(updates.map((u) => [u.id, u]))
   const merged: MatchRow[] = matchRows.map((m) => {
     const u = updatedById.get(m.id)
-    return u ? { ...m, home_score: u.home_score, away_score: u.away_score, state: u.state } : m
+    return u
+      ? { ...m, home_score: u.home_score, away_score: u.away_score, penalty_home: u.penalty_home, penalty_away: u.penalty_away, state: u.state }
+      : m
   })
   const resolutions = resolveBracket(merged)
   for (const r of resolutions) {
